@@ -1,0 +1,49 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Roboto', sans-serif;
+}
+
+#wrapper {
+    height: 100%;
+    width: 100%;
+    text-align: center;
+    margin: 20px;
+}
+
+#field {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.controls {
+    display: inline-block;
+    margin-top: 20px;
+    width: 100%;
+}
+
+.control-button {
+    display: inline-block;
+    border-radius: 5px;
+    background-color: #5FD3EF;
+    color: white;
+    font-weight: 500;
+    border: none;
+    padding: 15px 32px;
+    text-decoration: none;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.inputs {
+    display: block;
+    margin-top: 10px;
+}
+
+.control-input-wrapper {
+    display: inline-block;
+}
+
+.input-label {
+    display: block;
+}
