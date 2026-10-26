@@ -1,4 +1,4 @@
-# ballbounce
+# B A L L B O U N C E R E P O
 
 Initially this repo was created to serve up a web socket version of this [codepen](https://codepen.io/welshd1/pen/xxGEoxN).
 
