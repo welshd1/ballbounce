@@ -106,7 +106,8 @@ class GravityBall extends Ball {
         let r = Math.sqrt(Math.pow(xDiff, 2) + Math.pow(yDiff, 2));
 
         // G * M1 * M2/r^2
-        let g = 10
+        // let g = 10
+        let g = 9.8;
         let f = g * this.mass * ball.mass / Math.pow(r, 2);
 
         // Find the x and y forces
