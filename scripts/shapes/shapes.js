@@ -1,10 +1,45 @@
+const trailLength = 25;
+
+class LocationList {
+    constructor(startingX, startingY) {
+        let startingLocation = new Location(startingX, startingY, null, null);
+        this.head = startingLocation;
+        this.tail = startingLocation;
+        this.length = 1;
+    }
+
+    append(x, y) {
+        let newHead = new Location(x, y, this.head, null);
+        this.head.prev = newHead;
+        this.head = newHead;
+
+        if (this.length >= trailLength) {
+            this.tail = this.tail.prev;
+            this.tail.next = null;
+        }
+        else {
+            this.length++;
+        }
+    }
+}
+
+class Location {
+    constructor(x, y, next, prev) {
+        this.x = x;
+        this.y = y;
+        this.next = next;
+        this.prev = prev;
+    }
+}
+
+
 class Shape {
-    constructor(x, y) {
+    constructor(x, y, trailEnabled) {
         this.color = '#' + generateRandomColor();
         this.x = x;
         this.y = y;
-        // this.xVelocity = getRndInteger(1, 5);
-        // this.yVelocity = getRndInteger(1, 5);
+        this.isTrailEnabled = trailEnabled;
+        this.locationList = new LocationList(x, y);
         if (Math.floor(Math.random() * 2) === 1) this.xVelocity = -this.xVelocity;
         if (Math.floor(Math.random() * 2) === 1) this.yVelocity = -this.yVelocity;
     }
@@ -35,6 +70,7 @@ class Shape {
     move() {
         this.x += this.xVelocity;
         this.y += this.yVelocity;
+        this.locationList.append(this.x, this.y);
     }
 
     reverseX() {
@@ -50,8 +86,8 @@ class Shape {
 }
 
 class Ball extends Shape {
-    constructor(x, y, width) {
-        super(x, y);
+    constructor(x, y, width, isTrailEnabled) {
+        super(x, y, isTrailEnabled);
         this.width = width;
     }
 
@@ -64,6 +100,20 @@ class Ball extends Shape {
         context.fill();
         context.stroke();
         context.closePath();
+
+        if (this.isTrailEnabled) {
+            context.beginPath();
+            context.moveTo(this.x, this.y);
+            context.strokeStyle = 'black';
+            context.lineWidth = 2;
+            let lineStart = this.locationList.head;
+            while (this.isTrailEnabled && lineStart != null) {
+                context.lineTo(lineStart.x, lineStart.y);
+                lineStart = lineStart.next;
+            }
+            context.stroke();
+        }
+
     }
 
     getTotalWidth() {
@@ -77,8 +127,8 @@ class Ball extends Shape {
 
 
 class GravityBall extends Ball {
-    constructor(x, y, width, mass, isAffectedByGravity, exertsGravity) {
-        super(x, y, width);
+    constructor(x, y, width, mass, isAffectedByGravity, exertsGravity, isTrailEnabled) {
+        super(x, y, width, isTrailEnabled);
         this.mass = mass;
         this.isAffectedByGravity = isAffectedByGravity;
         this.exertsGravity = exertsGravity;

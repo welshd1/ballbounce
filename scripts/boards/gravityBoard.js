@@ -1,10 +1,14 @@
-var mouseSettings = {
+const mouseDefaults = {
     mouseMass: 20
 }
 
 const MouseMode = {
     GRAVITY: 'GRAVITY',
     ADD: 'ADD'
+}
+
+const ui = {
+    MOUSE_GRAVITY_INPUT: 'mouse-gravity'
 }
 
 
@@ -21,7 +25,7 @@ class GravityBoard {
         this.ctx = this.canvas.getContext('2d');
 
         this.#shapes = [];
-        this.#mouseBall = new GravityBall(0, 0, 10, mouseSettings.mouseMass, false, false);
+        this.#mouseBall = new GravityBall(0, 0, 10, mouseDefaults.mouseMass, false, false, false);
         this.#mouseMode = MouseMode.GRAVITY;
         this.#stagedBall = null;
     }
@@ -80,7 +84,7 @@ class GravityBoard {
             this.#mouseBall.exertsGravity = false;
             return;
         }
-        this.#stagedBall.isAffectedByGravity = true;
+        this.#stagedBall.isAffectedByGravity = true; // This will need to change for the user to add static balls
         this.#shapes.push(this.#stagedBall);
         this.#stagedBall = null;
     }
@@ -94,12 +98,20 @@ class GravityBoard {
         this.#stagedBall.x = event.offsetX;
         this.#stagedBall.y = event.offsetY;
     }
+
+    setMouseGravity(value) {
+        this.#mouseBall.mass = value;
+    }
+
+    getMouseGravity() {
+        return this.#mouseBall.mass;
+    }
 }
 
 window.onload = () => {
     board = new GravityBoard('field', 1400, 1200);
 
-    let ball = new GravityBall(500, 500, 10, 100, true, false);
+    let ball = new GravityBall(500, 500, 10, 100, true, false, true);
     ball.accelerateXAxis(1);
     ball.accelerateYAxis(-.75);
     board.addShape(ball);
@@ -107,26 +119,28 @@ window.onload = () => {
     // let centerBall = new GravityBall(700, 600, 30, 50, false, true);
     // board.addShape(centerBall);
 
-    let topLeftBall = new GravityBall(350, 300, 30, 50, false, true);
+    let topLeftBall = new GravityBall(350, 300, 30, 50, false, true, false);
     board.addShape(topLeftBall);
 
-    let topRightBall = new GravityBall(350, 900, 30, 50, false, true);
+    let topRightBall = new GravityBall(350, 900, 30, 50, false, true, false);
     board.addShape(topRightBall);
 
-    let bottomRightBall = new GravityBall(1050, 300, 30, 50, false, true);
+    let bottomRightBall = new GravityBall(1050, 300, 30, 50, false, true, false);
     board.addShape(bottomRightBall);
 
-    let bottomLeftBall = new GravityBall(1050, 900, 30, 50, false, true);
+    let bottomLeftBall = new GravityBall(1050, 900, 30, 50, false, true, false);
     board.addShape(bottomLeftBall);
 
     board.start();
 
+    let controller = new GravityBoardController(board);
+
     document.getElementById('add-button').onclick = function () {
 
-        for (let i = 0; i < 1; i++) {
+        for (let i = 0; i < 50; i++) {
             let ballX = Math.floor(Math.random() * ((board.canvas.width - 10) - (10 * 2))) + 10 * 2;
             let ballY = Math.floor(Math.random() * ((board.canvas.height - 10) - (10 * 2))) + 10 * 2;
-            let newBall = new GravityBall(ballX, ballY, 10, 10, true, false);
+            let newBall = new GravityBall(ballX, ballY, 10, 10, true, false, true);
             newBall.accelerateXAxis(Math.random() * 2);
             newBall.accelerateYAxis(Math.random() * 2);
             board.addShape(newBall);
@@ -134,7 +148,6 @@ window.onload = () => {
     }
 
     board.canvas.addEventListener('mousedown', function (event) {
-        console.log('Mouse gravity on');
         board.handleMouseDown(event);
     });
 
@@ -143,7 +156,6 @@ window.onload = () => {
     });
 
     board.canvas.addEventListener('mouseup', function (event) {
-        console.log('Mouse gravity off');
         board.handleMouseUp(event);
     });
 }
@@ -157,8 +169,23 @@ function getRndInteger(min, max) {
 }
 
 class GravityBoardController {
-    constructor(controllerId, board) {
-        this.board = board;
-        this.controller = document.getElementById(controllerId);
+    #board;
+    constructor(board) {
+        this.#board = board;
+        this.mouseGravityInput = document.getElementById(ui.MOUSE_GRAVITY_INPUT);
+        this.initializeElements();
+    }
+
+    initializeElements() {
+        this.mouseGravityInput.value = mouseDefaults.mouseMass;
+        this.mouseGravityInput.onchange = (event) => {
+            let mouseGravity = event.target.value;
+            if (isNaN(mouseGravity)) {
+                event.target.value = null;
+                return;
+            }
+            this.#board.setMouseGravity(mouseGravity);
+            console.log('Mouse gravity set to ' + this.#board.getMouseGravity());
+        }
     }
 }
