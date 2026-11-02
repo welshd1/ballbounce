@@ -92,6 +92,24 @@ class Ball extends Shape {
     }
 
     render(context) {
+
+        // Render trail first so it's behind the ball
+        if (this.isTrailEnabled) {
+            context.beginPath();
+            context.moveTo(this.x, this.y);
+            context.strokeStyle = this.color;
+            context.lineWidth = this.getTotalWidth();
+            let decrement = context.lineWidth / trailLength;
+            console.log(decrement);
+            let lineStart = this.locationList.head;
+            while (this.isTrailEnabled && lineStart != null) {
+                context.lineTo(lineStart.x, lineStart.y);
+                lineStart = lineStart.next;
+                context.lineWidth -= decrement;
+                context.stroke();
+            }
+        }
+
         context.beginPath();
         context.fillStyle = this.color;
         context.strokeStyle = 'black';
@@ -100,20 +118,6 @@ class Ball extends Shape {
         context.fill();
         context.stroke();
         context.closePath();
-
-        if (this.isTrailEnabled) {
-            context.beginPath();
-            context.moveTo(this.x, this.y);
-            context.strokeStyle = 'black';
-            context.lineWidth = 2;
-            let lineStart = this.locationList.head;
-            while (this.isTrailEnabled && lineStart != null) {
-                context.lineTo(lineStart.x, lineStart.y);
-                lineStart = lineStart.next;
-            }
-            context.stroke();
-        }
-
     }
 
     getTotalWidth() {

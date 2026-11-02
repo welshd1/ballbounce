@@ -1,5 +1,5 @@
 const mouseDefaults = {
-    mouseMass: 20
+    mouseMass: 275
 }
 
 const MouseMode = {
@@ -36,7 +36,8 @@ class GravityBoard {
 
     // Calculate the change that get made before actually saving it
     draw() {
-        this.ctx.fillStyle = 'LightGray';
+        // this.ctx.fillStyle = 'LightGray';
+        this.ctx.fillStyle = 'Black';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         for (let i = 0; i < this.#shapes.length; i++) {
             this.#shapes[i].stageGravityChange(this.#mouseBall);
@@ -111,11 +112,6 @@ class GravityBoard {
 window.onload = () => {
     board = new GravityBoard('field', 1400, 1200);
 
-    let ball = new GravityBall(500, 500, 10, 100, true, false, true);
-    ball.accelerateXAxis(1);
-    ball.accelerateYAxis(-.75);
-    board.addShape(ball);
-
     // let centerBall = new GravityBall(700, 600, 30, 50, false, true);
     // board.addShape(centerBall);
 
@@ -131,13 +127,19 @@ window.onload = () => {
     let bottomLeftBall = new GravityBall(1050, 900, 30, 50, false, true, false);
     board.addShape(bottomLeftBall);
 
+
+    let ball = new GravityBall(500, 500, 10, 100, true, false, true);
+    ball.accelerateXAxis(1);
+    ball.accelerateYAxis(-.75);
+    board.addShape(ball);
+
     board.start();
 
     let controller = new GravityBoardController(board);
 
     document.getElementById('add-button').onclick = function () {
 
-        for (let i = 0; i < 50; i++) {
+        for (let i = 0; i < 1; i++) {
             let ballX = Math.floor(Math.random() * ((board.canvas.width - 10) - (10 * 2))) + 10 * 2;
             let ballY = Math.floor(Math.random() * ((board.canvas.height - 10) - (10 * 2))) + 10 * 2;
             let newBall = new GravityBall(ballX, ballY, 10, 10, true, false, true);
