@@ -1,49 +1,84 @@
-html, body {
-    margin: 0;
-    padding: 0;
-    font-family: 'Roboto', sans-serif;
+html,
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "Roboto", sans-serif;
 }
 
 #wrapper {
-    height: 100%;
-    width: 100%;
-    text-align: center;
-    margin: 20px;
+  height: 100%;
+  width: 100%;
+  text-align: center;
+  margin: 20px;
 }
 
 #field {
-    display: inline-block;
-    vertical-align: middle;
+  display: inline-block;
+  vertical-align: middle;
 }
 
 .controls {
-    display: inline-block;
-    margin-top: 20px;
-    width: 100%;
+  display: inline-block;
+  margin-top: 20px;
+  width: 100%;
 }
 
 .control-button {
-    display: inline-block;
-    border-radius: 5px;
-    background-color: #5FD3EF;
-    color: white;
-    font-weight: 500;
-    border: none;
-    padding: 15px 32px;
-    text-decoration: none;
-    font-size: 16px;
-    cursor: pointer;
+  display: inline-block;
+  border-radius: 5px;
+  background-color: #5fd3ef;
+  color: white;
+  font-weight: 500;
+  border: none;
+  padding: 15px 32px;
+  text-decoration: none;
+  font-size: 16px;
+  cursor: pointer;
 }
 
 .inputs {
-    display: block;
-    margin-top: 10px;
+  display: block;
+  margin-top: 10px;
 }
 
 .control-input-wrapper {
-    display: inline-block;
+  display: inline-block;
+  height: 40px;
+  border: 1px solid #5fd3ef;
+  border-radius: 5px;
+  background-color:;
+}
+
+.control-input-wrapper.input-number .input-label {
+  width: 125px;
+  display: inline-block;
+  vertical-align: middle;
+  /*the teal color used above but at 50% opacity*/
+  background-color: rgba(92, 190, 255, 0.5);
+  padding: 9px;
+  border-right: 1px solid #5fd3ef;
+}
+
+.control-input-wrapper.input-number > input[type="number"] {
+  width: 50px;
+  height: 100%;
+  display: inline-block;
+  vertical-align: middle;
+  font-weight: 16px;
+  border-radius: 0px;
+  border: 0px;
+  padding: 0px;
+  margin: 0px;
 }
 
 .input-label {
-    display: block;
+  display: block;
+}
+
+@media (prefers-color-scheme: dark) {
+  html,
+  body {
+    background-color: #000;
+    color: #fff;
+  }
 }
