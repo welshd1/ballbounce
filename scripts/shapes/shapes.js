@@ -1,4 +1,5 @@
 const trailLength = 25;
+const apiKey = '123345sdffgt4t4ewq3f';
 
 class LocationList {
     constructor(startingX, startingY) {
@@ -100,7 +101,6 @@ class Ball extends Shape {
             context.strokeStyle = this.color;
             context.lineWidth = this.getTotalWidth();
             let decrement = context.lineWidth / trailLength;
-            console.log(decrement);
             let lineStart = this.locationList.head;
             while (this.isTrailEnabled && lineStart != null) {
                 context.lineTo(lineStart.x, lineStart.y);
