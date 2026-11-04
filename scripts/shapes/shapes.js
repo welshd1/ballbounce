@@ -35,7 +35,7 @@ class Location {
 
 class Shape {
     constructor(x, y, trailEnabled) {
-        this.color = '#' + generateRandomColor();
+        // this.color = '#' + generateRandomColor();
         this.x = x;
         this.y = y;
         this.isTrailEnabled = trailEnabled;
@@ -86,21 +86,23 @@ class Shape {
 }
 
 class Ball extends Shape {
-    constructor(x, y, width, isTrailEnabled) {
+    constructor(x, y, width, borderWidth, color, borderColor, isTrailEnabled) {
         super(x, y, isTrailEnabled);
         this.width = width;
+        this.borderWidth = borderWidth;
+        this.color = color;
+        this.borderColor = borderColor;
     }
 
     render(context) {
 
-        // Render trail first so it's behind the ball
+        // Render trail first so it's behind the ball 
         if (this.isTrailEnabled) {
             context.beginPath();
             context.moveTo(this.x, this.y);
             context.strokeStyle = this.color;
             context.lineWidth = this.getTotalWidth();
             let decrement = context.lineWidth / trailLength;
-            console.log(decrement);
             let lineStart = this.locationList.head;
             while (this.isTrailEnabled && lineStart != null) {
                 context.lineTo(lineStart.x, lineStart.y);
@@ -112,8 +114,8 @@ class Ball extends Shape {
 
         context.beginPath();
         context.fillStyle = this.color;
-        context.strokeStyle = 'black';
-        context.lineWidth = 2;
+        context.strokeStyle = this.borderColor;
+        context.lineWidth = this.borderWidth;
         context.arc(this.x, this.y, this.width, 0, Math.PI * 2, true);
         context.fill();
         context.stroke();
@@ -129,10 +131,33 @@ class Ball extends Shape {
     }
 }
 
+class StagedBall extends Ball {
+
+    constructor(x, y, width, borderWidth, color, borderColor) {
+        super(x, y, width, borderWidth, color, borderColor, false);
+
+    }
+
+    // Draw arrow to show direction of the ball on launch
+    render(context) {
+        super.render(context);
+        console.log('rendering arrow');
+        context.strokeStyle = invertColor(context.fillStyle);
+        context.beginPath();
+        context.moveTo(this.x, this.y);
+        this.xVelocity = 10;
+        this.yVelocity = 10;
+        let arrowPointX = this.x + this.getTotalWidth() + this.xVelocity;
+        let arrowPointY = this.y + this.getTotalWidth() + this.yVelocity;
+        context.lineTo(arrowPointX, arrowPointY);
+        context.stroke();
+        context.closePath();
+    }
+}
 
 class GravityBall extends Ball {
-    constructor(x, y, width, mass, isAffectedByGravity, exertsGravity, isTrailEnabled) {
-        super(x, y, width, isTrailEnabled);
+    constructor(x, y, width, borderWidth, color, borderColor, mass, isAffectedByGravity, exertsGravity, isTrailEnabled) {
+        super(x, y, width, borderWidth, color, borderColor, isTrailEnabled);
         this.mass = mass;
         this.isAffectedByGravity = isAffectedByGravity;
         this.exertsGravity = exertsGravity;
@@ -180,4 +205,33 @@ class GravityBall extends Ball {
         this.xVelocityChange = 0;
         this.yVelocityChange = 0;
     }
+}
+
+// Source - https://stackoverflow.com/a/35970186
+// Posted by Onur Yıldırım, modified by community. See post 'Timeline' for change history
+// Retrieved 2026-11-04, License - CC BY-SA 4.0
+
+function invertColor(hex) {
+    if (hex.indexOf('#') === 0) {
+        hex = hex.slice(1);
+    }
+    // convert 3-digit hex to 6-digits.
+    if (hex.length === 3) {
+        hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
+    }
+    if (hex.length !== 6) {
+        throw new Error('Invalid HEX color.');
+    }
+    // invert color components
+    var r = (255 - parseInt(hex.slice(0, 2), 16)).toString(16),
+        g = (255 - parseInt(hex.slice(2, 4), 16)).toString(16),
+        b = (255 - parseInt(hex.slice(4, 6), 16)).toString(16);
+    // pad each with zeros and return
+    return '#' + padZero(r) + padZero(g) + padZero(b);
+}
+
+function padZero(str, len) {
+    len = len || 2;
+    var zeros = new Array(len).join('0');
+    return (zeros + str).slice(-len);
 }

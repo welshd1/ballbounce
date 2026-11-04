@@ -10,13 +10,84 @@
     <div id="wrapper">
         <Canvas id="field"></canvas>
         <div class="controls">
-            <button id="add-button" class="control-button">Add Ball</button>
-            <div class="control-input-wrapper">
-                <span class="input-label">Mouse Gravity</span>
-                <input id="mouse-gravity" type="number">
+            <div id="ball-mode-wrapper">
+                <div class="control-input-wrapper">
+                    <span class="input-label">Add Ball Mode</span>
+                    <input id="add-ball-mode" type="radio" value="addBall" name="ball_mode" class="mode-radio-button">
+                </div>
+                <div class="control-input-wrapper">
+                    <span class="input-label">Gravity Mode</span>
+                    <input id="gravity-mode" type="radio" value="gravityBall" name="ball_mode" class="mode-radio-button">
+                </div>
             </div>
+            <div id="mouse-gravity-settings">
+                <div class="control-input-wrapper">
+                    <span class="input-label">Mouse Gravity</span>
+                    <input id="mouse-gravity" type="number">
+                </div>
+            </div>
+            <div id="add-ball-settings">
+                <div class="control-input-wrapper">
+                    <span class="input-label">Randomize</span>
+                    <input id="randomize" type="checkbox">
+                </div>
+                <div class="control-input-wrapper">
+                    <span class="input-label">Ball Mass</span>
+                    <input id="ball-mass" type="number">
+                </div>
+                <div class="control-input-wrapper">
+                    <span class="input-label">X Velocity</span>
+                    <input id="x-velocity" type="number">
+                </div>
+                <div class="control-input-wrapper">
+                    <span class="input-label">Y Velocity</span>
+                    <input id="y-velocity" type="number">
+                </div>
+                <div class="control-input-wrapper">
+                    <span class="input-label">Exerts Gravity</span>
+                    <input id="exerts-gravity" type="checkbox">
+                </div>
+                <div class="control-input-wrapper">
+                    <span class="input-label">Affected by Gravity</span>
+                    <input id="affected-by-gravity" type="checkbox">
+                </div>
+                <div class="control-input-wrapper">
+                    <span class="input-label">Ball Color</span>
+                    <input id="ball-color" type="text">
+                </div>
+                <div class="control-input-wrapper">
+                    <span class="input-label">Ball Width</span>
+                    <input id="ball-width" type="text">
+                </div>
+                <div class="control-input-wrapper">
+                    <span class="input-label">Ball Border Width</span>
+                    <input id="ball-border-width" type="text">
+                </div>
+                <div class="control-input-wrapper">
+                    <span class="input-label">Ball Border Color</span>
+                    <input id="ball-border-color" type="text">
+                </div>
+                <button id="add-button" class="control-button">Add Ball</button>
+            </div>
+
         </div>
     </div>
 </body>
+
+<!--
+    Controls to add
+    Mouse mode - gravity vs add
+        Mouse mass
+    Ball settings
+        Mass
+        xVelocity
+        yVelocity
+        Affected by gravity
+        Exerts gravity
+        Color (start with text field, css color picker future state)
+        Border color
+        Border width
+    Background color
+-->
 
 </html>
