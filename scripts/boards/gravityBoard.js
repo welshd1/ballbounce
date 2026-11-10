@@ -12,7 +12,6 @@ const ui = {
     MOUSE_GRAVITY_INPUT: 'mouse-gravity',
     ADD_BALL_RADIO: 'add-ball-mode',
     GRAVITY_MODE_RADIO: 'gravity-mode',
-    MOUSE_GRAVITY: 'mouse-gravity',
     BALL_MASS: 'ball-mass',
     X_VELOCITY: 'x-velocity',
     Y_VELOCITY: 'y-velocity',
@@ -128,22 +127,22 @@ window.onload = () => {
     // let centerBall = new GravityBall(700, 600, 30, 50, false, true);
     // board.addShape(centerBall);
 
-    let topLeftBall = new GravityBall(350, 300, 30, 2, 'blue', 'white', 50, false, true, false);
-    board.addShape(topLeftBall);
+    // let topLeftBall = new GravityBall(350, 300, 30, 2, 'blue', 'white', 50, false, true, false);
+    // board.addShape(topLeftBall);
 
-    let topRightBall = new GravityBall(350, 900, 30, 2, 'blue', 'white', 50, false, true, false);
-    board.addShape(topRightBall);
+    // let topRightBall = new GravityBall(350, 900, 30, 2, 'blue', 'white', 50, false, true, false);
+    // board.addShape(topRightBall);
 
-    let bottomRightBall = new GravityBall(1050, 300, 30, 2, 'blue', 'white', 50, false, true, false);
-    board.addShape(bottomRightBall);
+    // let bottomRightBall = new GravityBall(1050, 300, 30, 2, 'blue', 'white', 50, false, true, false);
+    // board.addShape(bottomRightBall);
 
-    let bottomLeftBall = new GravityBall(1050, 900, 30, 2, 'blue', 'white', 50, false, true, false);
-    board.addShape(bottomLeftBall);
+    // let bottomLeftBall = new GravityBall(1050, 900, 30, 2, 'blue', 'white', 50, false, true, false);
+    // board.addShape(bottomLeftBall);
 
-    let ball = new GravityBall(500, 500, 10, 2, '#' + generateRandomColor(), 'black', 100, true, false, true);
-    ball.accelerateXAxis(1);
-    ball.accelerateYAxis(-.75);
-    board.addShape(ball);
+    // let ball = new GravityBall(500, 500, 10, 2, '#' + generateRandomColor(), 'black', 100, true, false, true);
+    // ball.accelerateXAxis(1);
+    // ball.accelerateYAxis(-.75);
+    // board.addShape(ball);
 
     board.start();
 
@@ -197,7 +196,6 @@ class GravityBoardController {
         this.mouseGravityInput = document.getElementById(ui.MOUSE_GRAVITY_INPUT);
         this.addBallRadio = document.getElementById(ui.ADD_BALL_RADIO);
         this.gravityModeRadio = document.getElementById(ui.GRAVITY_MODE_RADIO);
-        this.mouseGravityInput = document.getElementById(ui.MOUSE_GRAVITY);
         this.ballMassInput = document.getElementById((ui.BALL_MASS));
         this.xVelocityInput = document.getElementById(ui.X_VELOCITY);
         this.yVelocityInput = document.getElementById(ui.Y_VELOCITY);
@@ -218,20 +216,28 @@ class GravityBoardController {
 
     initializeElements() {
         this.mouseGravityInput.value = mouseDefaults.mouseMass;
+        this.#board.setMouseGravity(mouseDefaults.mouseMass);
+        this.addBallRadio.checked = true;
+        this.gravityModeRadio.checked = false;
+        this.ballMassInput.value = 10;
+        this.xVelocityInput.valule = 5;
+        this.yVelocityInput.value = 5;
+        this.exertsGravity.checked = false;
+        this.affectedByGravity.checked = true;
+        this.ballColor.value = 'blue';
+        this.ballWidth.value = 10;
+        this.ballBorderWidth.value = 2;
+    }
 
+    initializeListeners() {
         this.mouseGravityInput.onchange = (event) => {
             let mouseGravity = event.target.value;
             if (isNaN(mouseGravity)) {
                 event.target.value = null;
                 return;
             }
-            this.#board.setMouseGravity(mouseGravity);
-            this.addBallRadio.checked = true;
-            this.gravityModeRadio.checked = false;
         }
-    }
 
-    initializeListeners() {
         let radioButtons = document.getElementsByClassName('mode-radio-button');
         for (let i = 0; i < radioButtons.length; i++) {
             radioButtons[i].addEventListener('click', () => {
@@ -239,9 +245,9 @@ class GravityBoardController {
             });
         }
 
-        this.addButton.onclick = () => {
-            this.addBall();
-        }
+        // this.addButton.onclick = () => {
+        //     this.addBall();
+        // }
 
         this.#board.canvas.addEventListener('mousedown', (event) => {
             this.handleMouseDown(event);
@@ -256,18 +262,20 @@ class GravityBoardController {
 
     handleMouseDown(event) {
         if (this.mouseMode === MouseMode.ADD) {
-            console.log('mouse down add');
             let width = this.ballWidth.value;
             let borderWidth = this.ballBorderWidth.value;
             let color = this.ballColor.value;
             let borderColor = this.ballBorderColor.value;
-            this.#board.stageBall(new StagedBall(event.offsetX,
+            let stagedball = new StagedBall(event.offsetX,
                 event.offsetY,
-                width,
+                Number(width),
                 borderWidth,
                 color,
                 borderColor,
-            ));
+            );
+            stagedball.accelerateXAxis(Number(this.xVelocityInput.value));
+            stagedball.accelerateYAxis(Number(this.yVelocityInput.value));
+            this.#board.stageBall(stagedball);
         }
 
         else if (this.mouseMode === MouseMode.GRAVITY) {
@@ -291,31 +299,33 @@ class GravityBoardController {
     }
 
     addBall(x, y) {
-        this.#board.addShape(new GravityBall(
+        console.log('adding');
+        let ball = new GravityBall(
             x,
             y,
-            this.ballWidth.value,
-            this.ballBorderWidth.value,
+            Number(this.ballWidth.value),
+            Number(this.ballBorderWidth.value),
             this.ballColor.value,
             this.ballBorderColor.value,
-            this.ballMassInput.value,
+            Number(this.ballMassInput.value),
             this.affectedByGravity.checked,
             this.exertsGravity.checked,
             true
-        ));
+        );
+        ball.accelerateXAxis(Number(this.xVelocityInput.value));
+        ball.accelerateYAxis(Number(this.yVelocityInput.value));
+        this.#board.addShape(ball);
     }
 
     evaluateMode() {
         if (this.addBallRadio.checked) {
             document.getElementById(ui.ADD_BALL_SETTINGS_WRAPPER).classList.remove('hidden');
             document.getElementById(ui.MOUSE_GRAVITY_SETTINGS_WRAPPER).classList.add('hidden');
-            console.log('set mouse mode to add')
             this.mouseMode = MouseMode.ADD;
         }
         else if (this.gravityModeRadio.checked) {
             document.getElementById(ui.ADD_BALL_SETTINGS_WRAPPER).classList.add('hidden');
             document.getElementById(ui.MOUSE_GRAVITY_SETTINGS_WRAPPER).classList.remove('hidden');
-            console.log('set mouse mode to gravity')
             this.mouseMode = MouseMode.GRAVITY;
         }
     }

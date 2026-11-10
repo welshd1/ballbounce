@@ -1,4 +1,5 @@
 const trailLength = 25;
+const minArrowLength = 25;
 
 class LocationList {
     constructor(startingX, startingY) {
@@ -38,6 +39,8 @@ class Shape {
         // this.color = '#' + generateRandomColor();
         this.x = x;
         this.y = y;
+        this.xVelocity = 0;
+        this.yVelocity = 0;
         this.isTrailEnabled = trailEnabled;
         this.locationList = new LocationList(x, y);
         if (Math.floor(Math.random() * 2) === 1) this.xVelocity = -this.xVelocity;
@@ -135,21 +138,27 @@ class StagedBall extends Ball {
 
     constructor(x, y, width, borderWidth, color, borderColor) {
         super(x, y, width, borderWidth, color, borderColor, false);
-
     }
 
     // Draw arrow to show direction of the ball on launch
     render(context) {
-        super.render(context);
-        console.log('rendering arrow');
+        super.render(context)
         context.strokeStyle = invertColor(context.fillStyle);
         context.beginPath();
+        context.strokeStyle = 'yellow';
+        context.lineWidth = 7;
         context.moveTo(this.x, this.y);
-        this.xVelocity = 10;
-        this.yVelocity = 10;
-        let arrowPointX = this.x + this.getTotalWidth() + this.xVelocity;
-        let arrowPointY = this.y + this.getTotalWidth() + this.yVelocity;
+        let width = this.getTotalWidth();
+        
+        // Point and draw the line of the arrow
+        let xWidthAdustment = this.x > 0 ? width + minArrowLength : width * -1 - minArrowLength;
+        let yWidthAdustment = this.y > 0 ? width + minArrowLength : width * -1 - minArrowLength;
+        let arrowPointX = this.xVelocity === 0 ? this.x : this.x + xWidthAdustment + this.xVelocity;
+        let arrowPointY = this.yVelocity === 0 ? this.y : this.y + yWidthAdustment + this.yVelocity;
         context.lineTo(arrowPointX, arrowPointY);
+
+        // Draw the triangle of the arrow
+        
         context.stroke();
         context.closePath();
     }
@@ -161,8 +170,8 @@ class GravityBall extends Ball {
         this.mass = mass;
         this.isAffectedByGravity = isAffectedByGravity;
         this.exertsGravity = exertsGravity;
-        this.xVelocity = 0;
-        this.yVelocity = 0;
+        // this.xVelocity = 0;
+        // this.yVelocity = 0;
         this.xVelocityChange = 0;
         this.yVelocityChange = 0;
     }
