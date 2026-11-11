@@ -142,25 +142,99 @@ class StagedBall extends Ball {
 
     // Draw arrow to show direction of the ball on launch
     render(context) {
-        super.render(context)
-        context.strokeStyle = invertColor(context.fillStyle);
+
+        // context.strokeStyle = invertColor(context.fillStyle);
         context.beginPath();
         context.strokeStyle = 'yellow';
-        context.lineWidth = 7;
+        // context.lineWidth = 7;
         context.moveTo(this.x, this.y);
         let width = this.getTotalWidth();
-        
-        // Point and draw the line of the arrow
-        let xWidthAdustment = this.x > 0 ? width + minArrowLength : width * -1 - minArrowLength;
-        let yWidthAdustment = this.y > 0 ? width + minArrowLength : width * -1 - minArrowLength;
-        let arrowPointX = this.xVelocity === 0 ? this.x : this.x + xWidthAdustment + this.xVelocity;
-        let arrowPointY = this.yVelocity === 0 ? this.y : this.y + yWidthAdustment + this.yVelocity;
-        context.lineTo(arrowPointX, arrowPointY);
 
-        // Draw the triangle of the arrow
-        
+        // Point and draw the line of the arrow
+        let xWidthAdustment = this.xVelocity > 0 ? width + minArrowLength : width * -1 - minArrowLength;
+        let yWidthAdustment = this.yVelocity > 0 ? width + minArrowLength : width * -1 - minArrowLength;
+
+        // Get line length
+        let xLength = xWidthAdustment + this.xVelocity;
+        let yLength = yWidthAdustment + this.yVelocity;
+        let absXLength = Math.abs(xLength);
+        let absYLength = Math.abs(yLength);
+        let arrowPointX = this.xVelocity === 0 ? this.x : this.x + xLength;
+        let arrowPointY = this.yVelocity === 0 ? this.y : this.y + yLength;
+
+        // Get line slope and offset
+        let slope = (arrowPointY - this.y) / (arrowPointX - this.x);
+        let b = this.y - slope * this.x;
+
+        // Use the greater value to decrement the width
+        let widthDecrement;
+        context.lineWidth = width;
+        if (Math.abs(this.xVelocity) > Math.abs(this.yVelocity)) {
+            // Decrement the width of the line as we draw
+            widthDecrement = width / absXLength;
+            let remainingLength = absXLength;
+            let lengthIncrement = absXLength / 100;
+            if (this.xVelocity < 0)
+                lengthIncrement = lengthIncrement * -1;
+
+            let previousPoint = this.x;
+            while (remainingLength > 0) {
+                let x = previousPoint + lengthIncrement;
+                let y = findY(slope, x, b);
+                context.lineTo(x, y);
+                context.stroke();
+                previousPoint = x;
+                remainingLength -= Math.abs(lengthIncrement);
+                context.lineWidth -= widthDecrement;
+            }
+        }
+        // Slope of a vertical line is undefined
+        else if (Math.abs(this.yVelocity) > 0 && this.xVelocity === 0) {
+            // Decrement the width of the line as we draw
+            widthDecrement = width / absYLength;
+            let remainingLength = absYLength;
+            let lengthIncrement = absYLength / 100;
+            if (this.yVelocity < 0)
+                lengthIncrement = lengthIncrement * -1;
+
+            let previousPoint = this.y;
+            while (remainingLength > 0) {
+                let y = previousPoint + lengthIncrement;
+                context.lineTo(this.x, y);
+                context.stroke();
+                previousPoint = y;
+                remainingLength -= Math.abs(lengthIncrement);
+                context.lineWidth -= widthDecrement;
+            }
+        }
+        else {
+            // Decrement the width of the line as we draw
+            widthDecrement = width / absYLength;
+            let remainingLength = absYLength;
+            let lengthIncrement = absYLength / 100;
+            if (this.yVelocity < 0)
+                lengthIncrement = lengthIncrement * -1;
+
+            let previousPoint = this.y;
+            while (remainingLength > 0) {
+                let y = previousPoint + lengthIncrement;
+                let x = findX(slope, y, b);
+                context.lineTo(x, y);
+                context.stroke();
+                previousPoint = y;
+                remainingLength -= Math.abs(lengthIncrement);
+                context.lineWidth -= widthDecrement;
+            }
+        }
+        context.closePath();
+
+
+
+        // context.lineTo(arrowPointX, arrowPointY);
+
         context.stroke();
         context.closePath();
+        super.render(context)
     }
 }
 
@@ -243,4 +317,12 @@ function padZero(str, len) {
     len = len || 2;
     var zeros = new Array(len).join('0');
     return (zeros + str).slice(-len);
+}
+
+function findY(m, x, b) {
+    return m * x + b;
+}
+
+function findX(m, y, b) {
+    return (y - b) / m;
 }
