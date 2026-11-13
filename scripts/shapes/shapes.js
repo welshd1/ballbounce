@@ -1,4 +1,5 @@
 const trailLength = 25;
+const minArrowLength = 25;
 
 class LocationList {
     constructor(startingX, startingY) {
@@ -35,9 +36,11 @@ class Location {
 
 class Shape {
     constructor(x, y, trailEnabled) {
-        this.color = '#' + generateRandomColor();
+        // this.color = '#' + generateRandomColor();
         this.x = x;
         this.y = y;
+        this.xVelocity = 0;
+        this.yVelocity = 0;
         this.isTrailEnabled = trailEnabled;
         this.locationList = new LocationList(x, y);
         if (Math.floor(Math.random() * 2) === 1) this.xVelocity = -this.xVelocity;
@@ -86,21 +89,23 @@ class Shape {
 }
 
 class Ball extends Shape {
-    constructor(x, y, width, isTrailEnabled) {
+    constructor(x, y, width, borderWidth, color, borderColor, isTrailEnabled) {
         super(x, y, isTrailEnabled);
         this.width = width;
+        this.borderWidth = borderWidth;
+        this.color = color;
+        this.borderColor = borderColor;
     }
 
     render(context) {
 
-        // Render trail first so it's behind the ball
+        // Render trail first so it's behind the ball 
         if (this.isTrailEnabled) {
             context.beginPath();
             context.moveTo(this.x, this.y);
             context.strokeStyle = this.color;
             context.lineWidth = this.getTotalWidth();
             let decrement = context.lineWidth / trailLength;
-            console.log(decrement);
             let lineStart = this.locationList.head;
             while (this.isTrailEnabled && lineStart != null) {
                 context.lineTo(lineStart.x, lineStart.y);
@@ -112,8 +117,8 @@ class Ball extends Shape {
 
         context.beginPath();
         context.fillStyle = this.color;
-        context.strokeStyle = 'black';
-        context.lineWidth = 2;
+        context.strokeStyle = this.borderColor;
+        context.lineWidth = this.borderWidth;
         context.arc(this.x, this.y, this.width, 0, Math.PI * 2, true);
         context.fill();
         context.stroke();
@@ -129,15 +134,118 @@ class Ball extends Shape {
     }
 }
 
+class StagedBall extends Ball {
+
+    constructor(x, y, width, borderWidth, color, borderColor) {
+        super(x, y, width, borderWidth, color, borderColor, false);
+    }
+
+    // Draw arrow to show direction of the ball on launch
+    render(context) {
+
+        // context.strokeStyle = invertColor(context.fillStyle);
+        context.beginPath();
+        context.strokeStyle = 'yellow';
+        // context.lineWidth = 7;
+        context.moveTo(this.x, this.y);
+        let width = this.getTotalWidth();
+
+        // Point and draw the line of the arrow
+        let xWidthAdustment = this.xVelocity > 0 ? width + minArrowLength : width * -1 - minArrowLength;
+        let yWidthAdustment = this.yVelocity > 0 ? width + minArrowLength : width * -1 - minArrowLength;
+
+        // Get line length
+        let xLength = xWidthAdustment + this.xVelocity;
+        let yLength = yWidthAdustment + this.yVelocity;
+        let absXLength = Math.abs(xLength);
+        let absYLength = Math.abs(yLength);
+        let arrowPointX = this.xVelocity === 0 ? this.x : this.x + xLength;
+        let arrowPointY = this.yVelocity === 0 ? this.y : this.y + yLength;
+
+        // Get line slope and offset
+        let slope = (arrowPointY - this.y) / (arrowPointX - this.x);
+        let b = this.y - slope * this.x;
+
+        // Use the greater value to decrement the width
+        let widthDecrement;
+        context.lineWidth = width;
+        if (Math.abs(this.xVelocity) > Math.abs(this.yVelocity)) {
+            // Decrement the width of the line as we draw
+            widthDecrement = width / absXLength;
+            let remainingLength = absXLength;
+            let lengthIncrement = absXLength / 100;
+            if (this.xVelocity < 0)
+                lengthIncrement = lengthIncrement * -1;
+
+            let previousPoint = this.x;
+            while (remainingLength > 0) {
+                let x = previousPoint + lengthIncrement;
+                let y = findY(slope, x, b);
+                context.lineTo(x, y);
+                context.stroke();
+                previousPoint = x;
+                remainingLength -= Math.abs(lengthIncrement);
+                context.lineWidth -= widthDecrement;
+            }
+        }
+        // Slope of a vertical line is undefined
+        else if (Math.abs(this.yVelocity) > 0 && this.xVelocity === 0) {
+            // Decrement the width of the line as we draw
+            widthDecrement = width / absYLength;
+            let remainingLength = absYLength;
+            let lengthIncrement = absYLength / 100;
+            if (this.yVelocity < 0)
+                lengthIncrement = lengthIncrement * -1;
+
+            let previousPoint = this.y;
+            while (remainingLength > 0) {
+                let y = previousPoint + lengthIncrement;
+                context.lineTo(this.x, y);
+                context.stroke();
+                previousPoint = y;
+                remainingLength -= Math.abs(lengthIncrement);
+                context.lineWidth -= widthDecrement;
+            }
+        }
+        else {
+            // Decrement the width of the line as we draw
+            widthDecrement = width / absYLength;
+            let remainingLength = absYLength;
+            let lengthIncrement = absYLength / 100;
+            if (this.yVelocity < 0)
+                lengthIncrement = lengthIncrement * -1;
+
+            let previousPoint = this.y;
+            while (remainingLength > 0) {
+                let y = previousPoint + lengthIncrement;
+                let x = findX(slope, y, b);
+                context.lineTo(x, y);
+                context.stroke();
+                previousPoint = y;
+                remainingLength -= Math.abs(lengthIncrement);
+                context.lineWidth -= widthDecrement;
+            }
+        }
+        context.closePath();
+
+
+
+        // context.lineTo(arrowPointX, arrowPointY);
+
+        context.stroke();
+        context.closePath();
+        super.render(context)
+    }
+}
 
 class GravityBall extends Ball {
-    constructor(x, y, width, mass, isAffectedByGravity, exertsGravity, isTrailEnabled) {
-        super(x, y, width, isTrailEnabled);
+    constructor(x, y, width, borderWidth, color, borderColor, mass, isAffectedByGravity, exertsGravity, isTrailEnabled) {
+        super(x, y, width, borderWidth, color, borderColor, isTrailEnabled);
         this.mass = mass;
         this.isAffectedByGravity = isAffectedByGravity;
         this.exertsGravity = exertsGravity;
-        this.xVelocity = 0;
-        this.yVelocity = 0;
+        // this.xVelocity = 0;
+        // this.yVelocity = 0;
         this.xVelocityChange = 0;
         this.yVelocityChange = 0;
     }
@@ -180,4 +288,41 @@ class GravityBall extends Ball {
         this.xVelocityChange = 0;
         this.yVelocityChange = 0;
     }
+}
+
+// Source - https://stackoverflow.com/a/35970186
+// Posted by Onur Yıldırım, modified by community. See post 'Timeline' for change history
+// Retrieved 2026-11-04, License - CC BY-SA 4.0
+
+function invertColor(hex) {
+    if (hex.indexOf('#') === 0) {
+        hex = hex.slice(1);
+    }
+    // convert 3-digit hex to 6-digits.
+    if (hex.length === 3) {
+        hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
+    }
+    if (hex.length !== 6) {
+        throw new Error('Invalid HEX color.');
+    }
+    // invert color components
+    var r = (255 - parseInt(hex.slice(0, 2), 16)).toString(16),
+        g = (255 - parseInt(hex.slice(2, 4), 16)).toString(16),
+        b = (255 - parseInt(hex.slice(4, 6), 16)).toString(16);
+    // pad each with zeros and return
+    return '#' + padZero(r) + padZero(g) + padZero(b);
+}
+
+function padZero(str, len) {
+    len = len || 2;
+    var zeros = new Array(len).join('0');
+    return (zeros + str).slice(-len);
+}
+
+function findY(m, x, b) {
+    return m * x + b;
+}
+
+function findX(m, y, b) {
+    return (y - b) / m;
 }
