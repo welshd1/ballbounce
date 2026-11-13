@@ -23,7 +23,8 @@ const ui = {
     BALL_BORDER_WIDTH: 'ball-border-width',
     ADD_BUTTON: 'add-button',
     ADD_BALL_SETTINGS_WRAPPER: 'add-ball-settings',
-    MOUSE_GRAVITY_SETTINGS_WRAPPER: 'mouse-gravity-settings'
+    MOUSE_GRAVITY_SETTINGS_WRAPPER: 'mouse-gravity-settings',
+    PAUSE_BUTTTON: 'pause-button'
 }
 
 class GravityBoard {
@@ -36,7 +37,8 @@ class GravityBoard {
         this.canvas = document.getElementById(canvasId);
         this.canvas.width = width;
         this.canvas.height = height;
-        this.ctx = this.canvas.getContext('2d');
+        this.context = this.canvas.getContext('2d');
+        this.isPaused = false;
 
         this.#shapes = [];
         this.#mouseBall = new GravityBall(0, 0, 10, 2, 'red', 'white', mouseDefaults.mouseMass, false, false, false);
@@ -51,8 +53,8 @@ class GravityBoard {
     // Calculate the change that get made before actually saving it
     draw() {
         // this.ctx.fillStyle = 'LightGray';
-        this.ctx.fillStyle = '#000000';
-        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        this.context.fillStyle = '#000000';
+        this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
         for (let i = 0; i < this.#shapes.length; i++) {
             this.#shapes[i].stageGravityChange(this.#mouseBall);
             this.stageShapeGravities(i, this.#shapes[i]);
@@ -60,16 +62,18 @@ class GravityBoard {
 
         for (let i = 0; i < this.#shapes.length; i++) {
             this.#shapes[i].enactGravityChange();
-            this.#shapes[i].move();
-            this.#shapes[i].render(this.ctx);
+            if (!this.isPaused)
+                this.#shapes[i].move();
+            this.#shapes[i].render(this.context);
         }
 
         if (this.#mouseBall.exertsGravity) {
-            this.#mouseBall.render(this.ctx);
+            this.#mouseBall.render(this.context);
         }
 
         if (this.#stagedBall != null) {
-            this.#stagedBall.render(this.ctx);
+            this.renderGridLines(this.#stagedBall.x, this.#stagedBall.y);
+            this.#stagedBall.render(this.context);
         }
 
     }
@@ -119,10 +123,31 @@ class GravityBoard {
         this.#mouseBall.y = y;
     }
 
+    renderGridLines(x, y) {
+        this.context.strokeStyle = 'white';
+        
+        this.context.moveTo(x, y);
+        this.context.lineTo(x, 0);
+
+        this.context.moveTo(x, y);
+        this.context.lineTo(x, this.canvas.height);
+
+        this.context.moveTo(x, y);
+        this.context.lineTo(0, y);
+        
+        this.context.moveTo(x, y);
+        this.context.lineTo(this.canvas.width, y);
+        this.context.stroke();
+    }
+
+    togglePause() {
+        this.isPaused = !this.isPaused;
+    }
+
 }
 
 window.onload = () => {
-    board = new GravityBoard('field', 1400, 1200);
+    board = new GravityBoard('field', 2560, 1200);
 
     // let centerBall = new GravityBall(700, 600, 30, 50, false, true);
     // board.addShape(centerBall);
@@ -160,22 +185,6 @@ window.onload = () => {
             board.addShape(newBall);
         }
     }
-
-    // board.canvas.addEventListener('mousedown', function (event) {
-    //     board.handleMouseDown(event);
-    // });
-
-    // board.canvas.addEventListener('mousedown', function (event) {
-    //     board.handleMouseDown(event);
-    // });
-
-    // board.canvas.addEventListener('mousemove', function (event) {
-    //     board.handleMouseMove(event);
-    // });
-
-    // board.canvas.addEventListener('mouseup', function (event) {
-    //     board.handleMouseUp(event);
-    // });
 }
 
 function generateRandomColor() {
@@ -206,6 +215,7 @@ class GravityBoardController {
         this.ballBorderWidth = document.getElementById(ui.BALL_BORDER_WIDTH);
         this.ballBorderColor = document.getElementById(ui.BALL_BORDER_COLOR)
         this.addButton = document.getElementById(ui.ADD_BUTTON);
+        this.pauseButton = document.getElementById(ui.PAUSE_BUTTTON);
 
         this.mouseMode = MouseMode.ADD;
 
@@ -258,6 +268,10 @@ class GravityBoardController {
         this.#board.canvas.addEventListener('mousemove', (event) => {
             this.handleMouseMove(event);
         });
+
+        this.pauseButton.addEventListener('click', () => {
+            this.#board.togglePause();
+        })
     }
 
     handleMouseDown(event) {

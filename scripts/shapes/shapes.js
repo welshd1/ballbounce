@@ -1,5 +1,5 @@
 const trailLength = 25;
-const minArrowLength = 25;
+const minArrowLength = 50;
 
 class LocationList {
     constructor(startingX, startingY) {
@@ -138,6 +138,7 @@ class StagedBall extends Ball {
 
     constructor(x, y, width, borderWidth, color, borderColor) {
         super(x, y, width, borderWidth, color, borderColor, false);
+        this.isStaged = false;
     }
 
     // Draw arrow to show direction of the ball on launch
