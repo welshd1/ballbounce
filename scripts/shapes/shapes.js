@@ -73,6 +73,10 @@ class Shape {
     move() {
         this.x += this.xVelocity;
         this.y += this.yVelocity;
+        this.saveLocation();
+    }
+
+    saveLocation() {
         this.locationList.append(this.x, this.y);
     }
 
@@ -84,6 +88,20 @@ class Shape {
     reverseY() {
         this.yVelocity = -this.yVelocity;
         this.color = '#' + generateRandomColor();
+    }
+
+    renderDetails(context) {
+        context.strokeStyle = 'white'
+        context.font = '24px Calibri';
+        let width = this.getTotalWidth();
+        let height = this.getTotalHeight();
+        let locationX = this.x + width;
+        let locationY = this.y - height;
+        let velocityX = this.x + width;
+        let velocityY = this.y + height * 2; // Double to avoid crosshair overlap
+
+        context.strokeText(`Loc: (${this.x}, ${this.y})`, locationX, locationY);
+        context.strokeText(`Vel: (${this.xVelocity}, ${this.yVelocity})`, velocityX, velocityY);
     }
 
 }
@@ -133,12 +151,21 @@ class Ball extends Shape {
         return this.width + 4;
     }
 }
-
+/*  TODO: Consider eliminating this class
+        Render direction and stats can just be methods implemented on GravityBall
+        Render becomes render arrow
+        Would reduce duplication in the rendering code
+        Alternatively could do a factory that creates GravityBall from StagedBall
+        Simplifies board code
+*/
 class StagedBall extends Ball {
 
-    constructor(x, y, width, borderWidth, color, borderColor) {
-        super(x, y, width, borderWidth, color, borderColor, false);
+    constructor(x, y, width, borderWidth, color, borderColor, mass, isAffectedByGravity, exertsGravity, isTrailEnabled) {
+        super(x, y, width, borderWidth, color, borderColor, isTrailEnabled)
         this.isStaged = false;
+        this.mass = mass;
+        this.isAffectedByGravity = isAffectedByGravity;
+        this.exertsGravity = exertsGravity;
     }
 
     // Draw arrow to show direction of the ball on launch
@@ -228,11 +255,6 @@ class StagedBall extends Ball {
             }
         }
         context.closePath();
-
-
-
-        // context.lineTo(arrowPointX, arrowPointY);
-
         context.stroke();
         context.closePath();
         super.render(context)

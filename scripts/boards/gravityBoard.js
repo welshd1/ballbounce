@@ -32,6 +32,7 @@ class GravityBoard {
     #shapes;
     #mouseBall;
     #stagedBall;
+    #stagedShapes;
 
     constructor(canvasId, width, height) {
         this.canvas = document.getElementById(canvasId);
@@ -41,6 +42,7 @@ class GravityBoard {
         this.isPaused = false;
 
         this.#shapes = [];
+        this.#stagedShapes = [];
         this.#mouseBall = new GravityBall(0, 0, 10, 2, 'red', 'white', mouseDefaults.mouseMass, false, false, false);
         this.#mouseMode = mouseDefaults.mouseMode;
         this.#stagedBall = null;
@@ -50,21 +52,29 @@ class GravityBoard {
         setInterval(() => this.draw(), 1000 / 60); //TODO: Change to param
     }
 
-    // Calculate the change that get made before actually saving it
     draw() {
-        // this.ctx.fillStyle = 'LightGray';
         this.context.fillStyle = '#000000';
         this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
-        for (let i = 0; i < this.#shapes.length; i++) {
-            this.#shapes[i].stageGravityChange(this.#mouseBall);
-            this.stageShapeGravities(i, this.#shapes[i]);
+
+        if (!this.isPaused) {
+            // Calculate the change that get made before actually saving it
+            for (let i = 0; i < this.#shapes.length; i++) {
+                this.#shapes[i].stageGravityChange(this.#mouseBall);
+                this.stageShapeGravities(i, this.#shapes[i]);
+            }
+
+            // Enact the total gravity change calculated in the previous loop
+            for (let i = 0; i < this.#shapes.length; i++) {
+                this.#shapes[i].enactGravityChange();
+                this.#shapes[i].move();
+                this.#shapes[i].render(this.context);
+            }
         }
 
-        for (let i = 0; i < this.#shapes.length; i++) {
-            this.#shapes[i].enactGravityChange();
-            if (!this.isPaused)
-                this.#shapes[i].move();
-            this.#shapes[i].render(this.context);
+        else {
+            for (let i = 0; i < this.#shapes.length; i++) {
+                this.#shapes[i].render(this.context);
+            }
         }
 
         if (this.#mouseBall.exertsGravity) {
@@ -74,6 +84,14 @@ class GravityBoard {
         if (this.#stagedBall != null) {
             this.renderGridLines(this.#stagedBall.x, this.#stagedBall.y);
             this.#stagedBall.render(this.context);
+            this.#stagedBall.renderDetails(this.context);
+            this.#stagedBall.saveLocation();
+        }
+
+        for (let i = 0; i < this.#stagedShapes.length; i++) {
+            this.#stagedShapes[i].render(this.context);
+            this.#stagedShapes[i].renderDetails(this.context);
+            this.#stagedShapes[i].saveLocation();
         }
 
     }
@@ -109,7 +127,31 @@ class GravityBoard {
         this.#stagedBall = ball;
     }
 
-    unstageBall() {
+    cancelStagedBall() {
+        this.#stagedBall = null;
+    }
+
+    saveStagedBall() {
+        if (this.isPaused) {
+            this.#stagedShapes.push(this.#stagedBall);
+        }
+        else {
+            let ball = new GravityBall(
+                this.#stagedBall.x,
+                this.#stagedBall.y,
+                this.#stagedBall.width,
+                this.#stagedBall.borderWidth,
+                this.#stagedBall.color,
+                this.#stagedBall.borderColor,
+                this.#stagedBall.mass,
+                this.#stagedBall.isAffectedByGravity,
+                this.#stagedBall.exertsGravity,
+                this.#stagedBall.isTrailEnabled,
+            )
+            ball.accelerateXAxis(this.#stagedBall.xVelocity);
+            ball.accelerateYAxis(this.#stagedBall.yVelocity);
+            this.#shapes.push(ball);
+        }
         this.#stagedBall = null;
     }
 
@@ -117,6 +159,7 @@ class GravityBoard {
         if (this.#stagedBall) {
             this.#stagedBall.x = x;
             this.#stagedBall.y = y;
+            this.#stagedBall.saveLocation();
         }
 
         this.#mouseBall.x = x;
@@ -125,7 +168,7 @@ class GravityBoard {
 
     renderGridLines(x, y) {
         this.context.strokeStyle = 'white';
-        
+
         this.context.moveTo(x, y);
         this.context.lineTo(x, 0);
 
@@ -134,65 +177,36 @@ class GravityBoard {
 
         this.context.moveTo(x, y);
         this.context.lineTo(0, y);
-        
+
         this.context.moveTo(x, y);
         this.context.lineTo(this.canvas.width, y);
         this.context.stroke();
     }
 
     togglePause() {
+        if (this.isPaused) {
+            for (let i = 0; i < this.#stagedShapes.length; i++) {
+                let ball = new GravityBall(
+                    this.#stagedShapes[i].x,
+                    this.#stagedShapes[i].y,
+                    this.#stagedShapes[i].width,
+                    this.#stagedShapes[i].borderWidth,
+                    this.#stagedShapes[i].color,
+                    this.#stagedShapes[i].borderColor,
+                    this.#stagedShapes[i].mass,
+                    this.#stagedShapes[i].isAffectedByGravity,
+                    this.#stagedShapes[i].exertsGravity,
+                    this.#stagedShapes[i].isTrailEnabled,
+                );
+                ball.accelerateXAxis(this.#stagedShapes[i].xVelocity);
+                ball.accelerateYAxis(this.#stagedShapes[i].yVelocity);
+                this.#shapes.push(ball);
+            }
+            this.#stagedShapes = [];
+        }
         this.isPaused = !this.isPaused;
     }
 
-}
-
-window.onload = () => {
-    board = new GravityBoard('field', 2560, 1200);
-
-    // let centerBall = new GravityBall(700, 600, 30, 50, false, true);
-    // board.addShape(centerBall);
-
-    // let topLeftBall = new GravityBall(350, 300, 30, 2, 'blue', 'white', 50, false, true, false);
-    // board.addShape(topLeftBall);
-
-    // let topRightBall = new GravityBall(350, 900, 30, 2, 'blue', 'white', 50, false, true, false);
-    // board.addShape(topRightBall);
-
-    // let bottomRightBall = new GravityBall(1050, 300, 30, 2, 'blue', 'white', 50, false, true, false);
-    // board.addShape(bottomRightBall);
-
-    // let bottomLeftBall = new GravityBall(1050, 900, 30, 2, 'blue', 'white', 50, false, true, false);
-    // board.addShape(bottomLeftBall);
-
-    // let ball = new GravityBall(500, 500, 10, 2, '#' + generateRandomColor(), 'black', 100, true, false, true);
-    // ball.accelerateXAxis(1);
-    // ball.accelerateYAxis(-.75);
-    // board.addShape(ball);
-
-    board.start();
-
-    let controller = new GravityBoardController(board);
-
-    document.getElementById('add-button').onclick = function () {
-
-        for (let i = 0; i < 1; i++) {
-            let ballX = Math.floor(Math.random() * ((board.canvas.width - 10) - (10 * 2))) + 10 * 2;
-            let ballY = Math.floor(Math.random() * ((board.canvas.height - 10) - (10 * 2))) + 10 * 2;
-            let color = '#' + generateRandomColor();
-            let newBall = new GravityBall(ballX, ballY, 10, 2, color, 'black', 10, true, false, true);
-            newBall.accelerateXAxis(Math.random() * 2);
-            newBall.accelerateYAxis(Math.random() * 2);
-            board.addShape(newBall);
-        }
-    }
-}
-
-function generateRandomColor() {
-    return Math.floor(Math.random() * 16777215).toString(16);
-}
-
-function getRndInteger(min, max) {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
 // Idea: use mouse pointer to select where the ball is going, use mouse wheel to select velocity
@@ -255,10 +269,6 @@ class GravityBoardController {
             });
         }
 
-        // this.addButton.onclick = () => {
-        //     this.addBall();
-        // }
-
         this.#board.canvas.addEventListener('mousedown', (event) => {
             this.handleMouseDown(event);
         });
@@ -286,6 +296,10 @@ class GravityBoardController {
                 borderWidth,
                 color,
                 borderColor,
+                Number(this.ballMassInput.value),
+                this.affectedByGravity.checked,
+                this.exertsGravity.checked,
+                true
             );
             stagedball.accelerateXAxis(Number(this.xVelocityInput.value));
             stagedball.accelerateYAxis(Number(this.yVelocityInput.value));
@@ -301,11 +315,7 @@ class GravityBoardController {
 
     handleMouseUp(event) {
         this.#board.toggleMouseGravity(false);
-        this.#board.unstageBall();
-
-        if (this.mouseMode === MouseMode.ADD) {
-            this.addBall(event.offsetX, event.offsetY);
-        }
+        this.#board.saveStagedBall();
     }
 
     handleMouseMove(event) {
@@ -313,22 +323,26 @@ class GravityBoardController {
     }
 
     addBall(x, y) {
-        console.log('adding');
-        let ball = new GravityBall(
-            x,
-            y,
-            Number(this.ballWidth.value),
-            Number(this.ballBorderWidth.value),
-            this.ballColor.value,
-            this.ballBorderColor.value,
-            Number(this.ballMassInput.value),
-            this.affectedByGravity.checked,
-            this.exertsGravity.checked,
-            true
-        );
-        ball.accelerateXAxis(Number(this.xVelocityInput.value));
-        ball.accelerateYAxis(Number(this.yVelocityInput.value));
-        this.#board.addShape(ball);
+        if (this.#board.isPaused) {
+
+        }
+        else {
+            let ball = new GravityBall(
+                x,
+                y,
+                Number(this.ballWidth.value),
+                Number(this.ballBorderWidth.value),
+                this.ballColor.value,
+                this.ballBorderColor.value,
+                Number(this.ballMassInput.value),
+                this.affectedByGravity.checked,
+                this.exertsGravity.checked,
+                true
+            );
+            ball.accelerateXAxis(Number(this.xVelocityInput.value));
+            ball.accelerateYAxis(Number(this.yVelocityInput.value));
+            this.#board.addShape(ball);
+        }
     }
 
     evaluateMode() {
@@ -343,4 +357,54 @@ class GravityBoardController {
             this.mouseMode = MouseMode.GRAVITY;
         }
     }
+}
+
+
+window.onload = () => {
+    board = new GravityBoard('field', 2560, 1200);
+
+    let centerBall = new GravityBall(1280, 600, 30, 2, 'white', 'blue', 50, false, true, false);
+    board.addShape(centerBall);
+
+    // let topLeftBall = new GravityBall(350, 300, 30, 2, 'blue', 'white', 50, false, true, false);
+    // board.addShape(topLeftBall);
+
+    // let topRightBall = new GravityBall(350, 900, 30, 2, 'blue', 'white', 50, false, true, false);
+    // board.addShape(topRightBall);
+
+    // let bottomRightBall = new GravityBall(1050, 300, 30, 2, 'blue', 'white', 50, false, true, false);
+    // board.addShape(bottomRightBall);
+
+    // let bottomLeftBall = new GravityBall(1050, 900, 30, 2, 'blue', 'white', 50, false, true, false);
+    // board.addShape(bottomLeftBall);
+
+    // let ball = new GravityBall(500, 500, 10, 2, '#' + generateRandomColor(), 'black', 100, true, false, true);
+    // ball.accelerateXAxis(1);
+    // ball.accelerateYAxis(-.75);
+    // board.addShape(ball);
+
+    board.start();
+
+    let controller = new GravityBoardController(board);
+
+    document.getElementById('add-button').onclick = function () {
+
+        for (let i = 0; i < 1; i++) {
+            let ballX = Math.floor(Math.random() * ((board.canvas.width - 10) - (10 * 2))) + 10 * 2;
+            let ballY = Math.floor(Math.random() * ((board.canvas.height - 10) - (10 * 2))) + 10 * 2;
+            let color = '#' + generateRandomColor();
+            let newBall = new GravityBall(ballX, ballY, 10, 2, color, 'black', 10, true, false, true);
+            newBall.accelerateXAxis(Math.random() * 2);
+            newBall.accelerateYAxis(Math.random() * 2);
+            board.addShape(newBall);
+        }
+    }
+}
+
+function generateRandomColor() {
+    return Math.floor(Math.random() * 16777215).toString(16);
+}
+
+function getRndInteger(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
 }
