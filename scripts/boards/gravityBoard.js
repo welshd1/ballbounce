@@ -43,7 +43,7 @@ class GravityBoard {
 
         this.#shapes = [];
         this.#stagedShapes = [];
-        this.#mouseBall = new GravityBall(0, 0, 10, 2, 'red', 'white', mouseDefaults.mouseMass, false, false, false);
+        this.#mouseBall = new GravityBall(0, 0, 10, 2, 'red', 'white', mouseDefaults.mouseMass, false, false, true);
         this.#mouseMode = mouseDefaults.mouseMode;
         this.#stagedBall = null;
     }
@@ -79,6 +79,7 @@ class GravityBoard {
 
         if (this.#mouseBall.exertsGravity) {
             this.#mouseBall.render(this.context);
+            this.#mouseBall.saveLocation();
         }
 
         if (this.#stagedBall != null) {
@@ -164,6 +165,7 @@ class GravityBoard {
 
         this.#mouseBall.x = x;
         this.#mouseBall.y = y;
+        this.#mouseBall.saveLocation();
     }
 
     renderGridLines(x, y) {
