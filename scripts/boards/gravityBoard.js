@@ -128,8 +128,12 @@ class GravityBoard {
         this.#stagedBall = ball;
     }
 
+    adjustStagedBallMass(amount) {
+        this.#stagedBall.mass += amount;
+    }
+
     cancelStagedBall() {
-        console.log('cancel');  
+        console.log('cancel');
         this.#stagedBall = null;
     }
 
@@ -261,6 +265,7 @@ class GravityBoardController {
         this.ballColor.value = 'blue';
         this.ballWidth.value = 10;
         this.ballBorderWidth.value = 2;
+        this.isStaging = false;
     }
 
     initializeListeners() {
@@ -280,11 +285,11 @@ class GravityBoardController {
         }
 
         this.#board.canvas.addEventListener('mousedown', (event) => {
-            if(event.which == 1) // Left click
+            if (event.which == 1) // Left click
                 this.handleMouseDown(event);
         });
         this.#board.canvas.addEventListener('mouseup', (event) => {
-            if(event.which == 1)
+            if (event.which == 1)
                 this.handleMouseUp(event);
         });
         this.#board.canvas.addEventListener('mousemove', (event) => {
@@ -301,6 +306,16 @@ class GravityBoardController {
             return false;
         })
 
+        this.#board.canvas.addEventListener('wheel', (event) => {
+            if (this.isStaging) {
+                event.preventDefault();
+                let amount = event.deltaY < 0 ? 1 : -1;
+                this.#board.adjustStagedBallMass(amount);
+                this.ballMassInput.value = parseInt(this.ballMassInput.value) + amount;
+                return false;
+            }
+        });
+
         document.addEventListener('keydown', (event) => {
             if (['w', 'a', 's', 'd'].includes(event.key)) {
                 this.velocityAdjustment(event.key);
@@ -310,6 +325,7 @@ class GravityBoardController {
     }
 
     handleMouseDown(event) {
+        this.isStaging = true;
         if (this.mouseMode === MouseMode.ADD) {
             this.isStaging = true;
             let width = this.ballWidth.value;
@@ -350,10 +366,7 @@ class GravityBoardController {
     }
 
     addBall(x, y) {
-        if (this.#board.isPaused) {
-
-        }
-        else {
+        if (!this.#board.isPaused) {
             let ball = new GravityBall(
                 x,
                 y,
@@ -393,7 +406,7 @@ class GravityBoardController {
         switch (key) {
             case 'w':
                 yAcceleration = adjustmentAmount
-                this.yVelocityInput.value += adjustmentAmount;
+                this.yVelocityInput.value = Number(this.yVelocityInput.value) + adjustmentAmount;
                 break;
             case 's':
                 yAcceleration = -1 * adjustmentAmount;

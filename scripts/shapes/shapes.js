@@ -99,9 +99,12 @@ class Shape {
         let locationY = this.y - height;
         let velocityX = this.x + width;
         let velocityY = this.y + height * 2; // Double to avoid crosshair overlap
+        let massX = this.x - width * 7;
+        let massY = this.y - width;
 
         context.strokeText(`Loc: (${this.x}, ${this.y})`, locationX, locationY);
         context.strokeText(`Vel: (${this.xVelocity.toFixed(1)}, ${this.yVelocity.toFixed(1)})`, velocityX, velocityY);
+        context.strokeText(`Mass: ${this.mass}`, massX, massY);
     }
 
 }
