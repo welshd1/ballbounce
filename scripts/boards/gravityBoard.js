@@ -129,6 +129,7 @@ class GravityBoard {
     }
 
     cancelStagedBall() {
+        console.log('cancel');  
         this.#stagedBall = null;
     }
 
@@ -154,6 +155,13 @@ class GravityBoard {
             this.#shapes.push(ball);
         }
         this.#stagedBall = null;
+    }
+
+    accelerateStagedBall(xVelocityChange, yVelocityChange) {
+        if (this.#stagedBall) {
+            this.#stagedBall.accelerateXAxis(xVelocityChange);
+            this.#stagedBall.accelerateYAxis(yVelocityChange);
+        }
     }
 
     updateControlCoordinates(x, y) {
@@ -213,7 +221,6 @@ class GravityBoard {
 
 // Idea: use mouse pointer to select where the ball is going, use mouse wheel to select velocity
 // Right click to cancel staging the new ball
-
 class GravityBoardController {
     #board;
     constructor(board) {
@@ -234,6 +241,7 @@ class GravityBoardController {
         this.pauseButton = document.getElementById(ui.PAUSE_BUTTTON);
 
         this.mouseMode = MouseMode.ADD;
+        this.isStaging = false;
 
         this.initializeElements();
         this.initializeListeners();
@@ -272,10 +280,12 @@ class GravityBoardController {
         }
 
         this.#board.canvas.addEventListener('mousedown', (event) => {
-            this.handleMouseDown(event);
+            if(event.which == 1) // Left click
+                this.handleMouseDown(event);
         });
         this.#board.canvas.addEventListener('mouseup', (event) => {
-            this.handleMouseUp(event);
+            if(event.which == 1)
+                this.handleMouseUp(event);
         });
         this.#board.canvas.addEventListener('mousemove', (event) => {
             this.handleMouseMove(event);
@@ -284,10 +294,24 @@ class GravityBoardController {
         this.pauseButton.addEventListener('click', () => {
             this.#board.togglePause();
         })
+
+        this.#board.canvas.addEventListener('contextmenu', (event) => {
+            event.preventDefault();
+            this.#board.cancelStagedBall();
+            return false;
+        })
+
+        document.addEventListener('keydown', (event) => {
+            if (['w', 'a', 's', 'd'].includes(event.key)) {
+                this.velocityAdjustment(event.key);
+            }
+        });
+
     }
 
     handleMouseDown(event) {
         if (this.mouseMode === MouseMode.ADD) {
+            this.isStaging = true;
             let width = this.ballWidth.value;
             let borderWidth = this.ballBorderWidth.value;
             let color = this.ballColor.value;
@@ -318,6 +342,7 @@ class GravityBoardController {
     handleMouseUp(event) {
         this.#board.toggleMouseGravity(false);
         this.#board.saveStagedBall();
+        this.isStaging = false;
     }
 
     handleMouseMove(event) {
@@ -359,8 +384,33 @@ class GravityBoardController {
             this.mouseMode = MouseMode.GRAVITY;
         }
     }
-}
 
+    velocityAdjustment(key) {
+        // TODO: Add input for this amount
+        let adjustmentAmount = 0.1;
+        let xAcceleration = 0;
+        let yAcceleration = 0;
+        switch (key) {
+            case 'w':
+                yAcceleration = adjustmentAmount
+                this.yVelocityInput.value += adjustmentAmount;
+                break;
+            case 's':
+                yAcceleration = -1 * adjustmentAmount;
+                this.yVelocityInput.value -= adjustmentAmount;
+                break;
+            case 'a':
+                xAcceleration = -1 * adjustmentAmount;
+                this.xVelocityInput.value -= adjustmentAmount;
+                break;
+            case 'd':
+                xAcceleration = adjustmentAmount;
+                this.xVelocityInput.value += adjustmentAmount;
+                break;
+        }
+        this.#board.accelerateStagedBall(xAcceleration, yAcceleration);
+    }
+}
 
 window.onload = () => {
     board = new GravityBoard('field', 2560, 1200);

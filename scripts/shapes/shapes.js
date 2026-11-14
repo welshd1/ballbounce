@@ -101,7 +101,7 @@ class Shape {
         let velocityY = this.y + height * 2; // Double to avoid crosshair overlap
 
         context.strokeText(`Loc: (${this.x}, ${this.y})`, locationX, locationY);
-        context.strokeText(`Vel: (${this.xVelocity}, ${this.yVelocity})`, velocityX, velocityY);
+        context.strokeText(`Vel: (${this.xVelocity.toFixed(1)}, ${this.yVelocity.toFixed(1)})`, velocityX, velocityY);
     }
 
 }
