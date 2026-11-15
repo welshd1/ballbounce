@@ -43,7 +43,7 @@ class GravityBoard {
 
         this.#shapes = [];
         this.#stagedShapes = [];
-        this.#mouseBall = new GravityBall(0, 0, 10, 2, 'red', 'white', mouseDefaults.mouseMass, false, false, true);
+        this.#mouseBall = new Ball(0, 0, mouseDefaults.mouseMass, false, false, true, 10, 2, 'red', 'white');
         this.#mouseMode = mouseDefaults.mouseMode;
         this.#stagedBall = null;
     }
@@ -84,14 +84,14 @@ class GravityBoard {
 
         if (this.#stagedBall != null) {
             this.renderGridLines(this.#stagedBall.x, this.#stagedBall.y);
+            this.#stagedBall.renderStagingDetails(this.context);
             this.#stagedBall.render(this.context);
-            this.#stagedBall.renderDetails(this.context);
             this.#stagedBall.saveLocation();
         }
 
         for (let i = 0; i < this.#stagedShapes.length; i++) {
+            this.#stagedShapes[i].renderStagingDetails(this.context);
             this.#stagedShapes[i].render(this.context);
-            this.#stagedShapes[i].renderDetails(this.context);
             this.#stagedShapes[i].saveLocation();
         }
 
@@ -142,17 +142,17 @@ class GravityBoard {
             this.#stagedShapes.push(this.#stagedBall);
         }
         else {
-            let ball = new GravityBall(
+            let ball = new Ball(
                 this.#stagedBall.x,
                 this.#stagedBall.y,
-                this.#stagedBall.width,
-                this.#stagedBall.borderWidth,
-                this.#stagedBall.color,
-                this.#stagedBall.borderColor,
                 this.#stagedBall.mass,
                 this.#stagedBall.isAffectedByGravity,
                 this.#stagedBall.exertsGravity,
                 this.#stagedBall.isTrailEnabled,
+                this.#stagedBall.width,
+                this.#stagedBall.borderWidth,
+                this.#stagedBall.color,
+                this.#stagedBall.borderColor,
             )
             ball.accelerateXAxis(this.#stagedBall.xVelocity);
             ball.accelerateYAxis(this.#stagedBall.yVelocity);
@@ -200,17 +200,17 @@ class GravityBoard {
     togglePause() {
         if (this.isPaused) {
             for (let i = 0; i < this.#stagedShapes.length; i++) {
-                let ball = new GravityBall(
+                let ball = new Ball(
                     this.#stagedShapes[i].x,
                     this.#stagedShapes[i].y,
-                    this.#stagedShapes[i].width,
-                    this.#stagedShapes[i].borderWidth,
-                    this.#stagedShapes[i].color,
-                    this.#stagedShapes[i].borderColor,
                     this.#stagedShapes[i].mass,
                     this.#stagedShapes[i].isAffectedByGravity,
                     this.#stagedShapes[i].exertsGravity,
                     this.#stagedShapes[i].isTrailEnabled,
+                    this.#stagedShapes[i].width,
+                    this.#stagedShapes[i].borderWidth,
+                    this.#stagedShapes[i].color,
+                    this.#stagedShapes[i].borderColor,
                 );
                 ball.accelerateXAxis(this.#stagedShapes[i].xVelocity);
                 ball.accelerateYAxis(this.#stagedShapes[i].yVelocity);
@@ -328,20 +328,20 @@ class GravityBoardController {
         this.isStaging = true;
         if (this.mouseMode === MouseMode.ADD) {
             this.isStaging = true;
-            let width = this.ballWidth.value;
-            let borderWidth = this.ballBorderWidth.value;
+            let width = Number(this.ballWidth.value);
+            let borderWidth = Number(this.ballBorderWidth.value);
             let color = this.ballColor.value;
             let borderColor = this.ballBorderColor.value;
-            let stagedball = new StagedBall(event.offsetX,
+            let stagedball = new Ball(event.offsetX,
                 event.offsetY,
+                Number(this.ballMassInput.value),
+                this.affectedByGravity.checked,
+                this.exertsGravity.checked,
+                true,
                 Number(width),
                 borderWidth,
                 color,
                 borderColor,
-                Number(this.ballMassInput.value),
-                this.affectedByGravity.checked,
-                this.exertsGravity.checked,
-                true
             );
             stagedball.accelerateXAxis(Number(this.xVelocityInput.value));
             stagedball.accelerateYAxis(Number(this.yVelocityInput.value));
@@ -367,17 +367,17 @@ class GravityBoardController {
 
     addBall(x, y) {
         if (!this.#board.isPaused) {
-            let ball = new GravityBall(
+            let ball = new Ball(
                 x,
                 y,
+                Number(this.ballMassInput.value),
+                this.affectedByGravity.checked,
+                this.exertsGravity.checked,
+                true,
                 Number(this.ballWidth.value),
                 Number(this.ballBorderWidth.value),
                 this.ballColor.value,
                 this.ballBorderColor.value,
-                Number(this.ballMassInput.value),
-                this.affectedByGravity.checked,
-                this.exertsGravity.checked,
-                true
             );
             ball.accelerateXAxis(Number(this.xVelocityInput.value));
             ball.accelerateYAxis(Number(this.yVelocityInput.value));
@@ -428,25 +428,8 @@ class GravityBoardController {
 window.onload = () => {
     board = new GravityBoard('field', 2560, 1200);
 
-    let centerBall = new GravityBall(1280, 600, 30, 2, 'white', 'blue', 50, false, true, false);
+    let centerBall = new Ball(1280, 600, 100, false, true, false, 30, 2, 'white', 'blue');
     board.addShape(centerBall);
-
-    // let topLeftBall = new GravityBall(350, 300, 30, 2, 'blue', 'white', 50, false, true, false);
-    // board.addShape(topLeftBall);
-
-    // let topRightBall = new GravityBall(350, 900, 30, 2, 'blue', 'white', 50, false, true, false);
-    // board.addShape(topRightBall);
-
-    // let bottomRightBall = new GravityBall(1050, 300, 30, 2, 'blue', 'white', 50, false, true, false);
-    // board.addShape(bottomRightBall);
-
-    // let bottomLeftBall = new GravityBall(1050, 900, 30, 2, 'blue', 'white', 50, false, true, false);
-    // board.addShape(bottomLeftBall);
-
-    // let ball = new GravityBall(500, 500, 10, 2, '#' + generateRandomColor(), 'black', 100, true, false, true);
-    // ball.accelerateXAxis(1);
-    // ball.accelerateYAxis(-.75);
-    // board.addShape(ball);
 
     board.start();
 
@@ -458,7 +441,7 @@ window.onload = () => {
             let ballX = Math.floor(Math.random() * ((board.canvas.width - 10) - (10 * 2))) + 10 * 2;
             let ballY = Math.floor(Math.random() * ((board.canvas.height - 10) - (10 * 2))) + 10 * 2;
             let color = '#' + generateRandomColor();
-            let newBall = new GravityBall(ballX, ballY, 10, 2, color, 'black', 10, true, false, true);
+            let newBall = new Ball(ballX, ballY, 10, true, false, true, 10, 2, color, 'black');
             newBall.accelerateXAxis(Math.random() * 2);
             newBall.accelerateYAxis(Math.random() * 2);
             board.addShape(newBall);

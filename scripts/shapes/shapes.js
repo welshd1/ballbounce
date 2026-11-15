@@ -1,6 +1,11 @@
 const trailLength = 25;
 const minArrowLength = 50;
 
+
+/*
+    LocationList is a doubly linked list to keep track of the past locations of a shape
+    It is used to render the trail following the shapes as they move around the canvas
+*/
 class LocationList {
     constructor(startingX, startingY) {
         let startingLocation = new Location(startingX, startingY, null, null);
@@ -33,21 +38,28 @@ class Location {
     }
 }
 
-
+/*
+    General class shape. This class contains all the functional components of a shape such as
+    location data, gravity methods, mass, location
+    It is meant to be an abstract class, but alas that is not supported in vanilla JS
+    To implement a new shape, the render, getTotalyHeight, and getTotalWidth methods must be implemented
+*/
 class Shape {
-    constructor(x, y, trailEnabled) {
+    constructor(x, y, mass, isAffectedByGravity, exertsGravity, isTrailEnabled) {
         // this.color = '#' + generateRandomColor();
         this.x = x;
         this.y = y;
         this.xVelocity = 0;
         this.yVelocity = 0;
-        this.isTrailEnabled = trailEnabled;
+        this.xVelocityChange = 0;
+        this.yVelocityChange = 0;
+        this.mass = mass;
+        this.isAffectedByGravity = isAffectedByGravity;
+        this.exertsGravity = exertsGravity;
+        this.isTrailEnabled = isTrailEnabled;
         this.locationList = new LocationList(x, y);
-        if (Math.floor(Math.random() * 2) === 1) this.xVelocity = -this.xVelocity;
-        if (Math.floor(Math.random() * 2) === 1) this.yVelocity = -this.yVelocity;
     }
 
-    // Abstract Methods
     render(context) {
         throw new Error("Render not implemented on " + this.constructor.name)
     }
@@ -90,7 +102,22 @@ class Shape {
         this.color = '#' + generateRandomColor();
     }
 
-    renderDetails(context) {
+    renderTrail(context) {
+        context.beginPath();
+        context.moveTo(this.x, this.y);
+        context.strokeStyle = this.color;
+        context.lineWidth = this.getTotalWidth();
+        let decrement = context.lineWidth / trailLength;
+        let lineStart = this.locationList.head;
+        while (this.isTrailEnabled && lineStart != null) {
+            context.lineTo(lineStart.x, lineStart.y);
+            lineStart = lineStart.next;
+            context.lineWidth -= decrement;
+            context.stroke();
+        }
+    }
+
+    renderStagingDetails(context) {
         context.strokeStyle = 'white'
         context.font = '24px Calibri';
         let width = this.getTotalWidth();
@@ -105,75 +132,10 @@ class Shape {
         context.strokeText(`Loc: (${this.x}, ${this.y})`, locationX, locationY);
         context.strokeText(`Vel: (${this.xVelocity.toFixed(1)}, ${this.yVelocity.toFixed(1)})`, velocityX, velocityY);
         context.strokeText(`Mass: ${this.mass}`, massX, massY);
+        this.renderStagingArrow(context);
     }
 
-}
-
-class Ball extends Shape {
-    constructor(x, y, width, borderWidth, color, borderColor, isTrailEnabled) {
-        super(x, y, isTrailEnabled);
-        this.width = width;
-        this.borderWidth = borderWidth;
-        this.color = color;
-        this.borderColor = borderColor;
-    }
-
-    render(context) {
-
-        // Render trail first so it's behind the ball 
-        if (this.isTrailEnabled) {
-            context.beginPath();
-            context.moveTo(this.x, this.y);
-            context.strokeStyle = this.color;
-            context.lineWidth = this.getTotalWidth();
-            let decrement = context.lineWidth / trailLength;
-            let lineStart = this.locationList.head;
-            while (this.isTrailEnabled && lineStart != null) {
-                context.lineTo(lineStart.x, lineStart.y);
-                lineStart = lineStart.next;
-                context.lineWidth -= decrement;
-                context.stroke();
-            }
-        }
-
-        context.beginPath();
-        context.fillStyle = this.color;
-        context.strokeStyle = this.borderColor;
-        context.lineWidth = this.borderWidth;
-        context.arc(this.x, this.y, this.width, 0, Math.PI * 2, true);
-        context.fill();
-        context.stroke();
-        context.closePath();
-    }
-
-    getTotalWidth() {
-        return this.width + 4; // Width + both sides of border
-    }
-
-    getTotalHeight() {
-        return this.width + 4;
-    }
-}
-/*  TODO: Consider eliminating this class
-        Render direction and stats can just be methods implemented on GravityBall
-        Render becomes render arrow
-        Would reduce duplication in the rendering code
-        Alternatively could do a factory that creates GravityBall from StagedBall
-        Simplifies board code
-*/
-class StagedBall extends Ball {
-
-    constructor(x, y, width, borderWidth, color, borderColor, mass, isAffectedByGravity, exertsGravity, isTrailEnabled) {
-        super(x, y, width, borderWidth, color, borderColor, isTrailEnabled)
-        this.isStaged = false;
-        this.mass = mass;
-        this.isAffectedByGravity = isAffectedByGravity;
-        this.exertsGravity = exertsGravity;
-    }
-
-    // Draw arrow to show direction of the ball on launch
-    render(context) {
-
+    renderStagingArrow(context) {
         // context.strokeStyle = invertColor(context.fillStyle);
         context.beginPath();
         context.strokeStyle = 'yellow';
@@ -260,21 +222,13 @@ class StagedBall extends Ball {
         context.closePath();
         context.stroke();
         context.closePath();
-        super.render(context)
     }
-}
 
-class GravityBall extends Ball {
-    constructor(x, y, width, borderWidth, color, borderColor, mass, isAffectedByGravity, exertsGravity, isTrailEnabled) {
-        super(x, y, width, borderWidth, color, borderColor, isTrailEnabled);
-        this.mass = mass;
-        this.isAffectedByGravity = isAffectedByGravity;
-        this.exertsGravity = exertsGravity;
-        // this.xVelocity = 0;
-        // this.yVelocity = 0;
-        this.xVelocityChange = 0;
-        this.yVelocityChange = 0;
-    }
+    /*
+        -----------------
+        | G R A V I T Y |
+        -----------------
+    */
 
     stageGravityChange(ball) {
         if (!this.isAffectedByGravity || !ball.exertsGravity)
@@ -294,7 +248,6 @@ class GravityBall extends Ball {
         let r = Math.sqrt(Math.pow(xDiff, 2) + Math.pow(yDiff, 2));
 
         // G * M1 * M2/r^2
-        // let g = 10
         let g = 9.8;
         let f = g * this.mass * ball.mass / Math.pow(r, 2);
 
@@ -313,6 +266,41 @@ class GravityBall extends Ball {
 
         this.xVelocityChange = 0;
         this.yVelocityChange = 0;
+    }
+}
+
+class Ball extends Shape {
+    constructor(x, y, mass, isAffectedByGravity, exertsGravity, isTrailEnabled, width, borderWidth, color, borderColor) {
+        super(x, y, mass, isAffectedByGravity, exertsGravity, isTrailEnabled);
+        this.width = width;
+        this.borderWidth = borderWidth;
+        this.color = color;
+        this.borderColor = borderColor;
+    }
+
+    render(context) {
+
+        // Render trail first so it's behind the ball 
+        if (this.isTrailEnabled) {
+            this.renderTrail(context);
+        }
+
+        context.beginPath();
+        context.fillStyle = this.color;
+        context.strokeStyle = this.borderColor;
+        context.lineWidth = this.borderWidth;
+        context.arc(this.x, this.y, this.width, 0, Math.PI * 2, true);
+        context.fill();
+        context.stroke();
+        context.closePath();
+    }
+
+    getTotalWidth() {
+        return this.width + this.borderWidth * 2; // Width + both sides of border
+    }
+
+    getTotalHeight() {
+        return this.width + this.borderWidth * 2;
     }
 }
 
