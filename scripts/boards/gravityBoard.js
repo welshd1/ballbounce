@@ -27,6 +27,10 @@ const ui = {
     PAUSE_BUTTTON: 'pause-button'
 }
 
+const shapeTypes = {
+    BALL: 'ball'
+}
+
 class GravityBoard {
     #mouseMode;
     #shapes;
@@ -182,7 +186,7 @@ class GravityBoard {
 
     renderGridLines(x, y) {
         this.context.strokeStyle = 'white';
-
+        //TODO: this could be more efficient, 2 lines instead of 4
         this.context.moveTo(x, y);
         this.context.lineTo(x, 0);
 
@@ -198,6 +202,7 @@ class GravityBoard {
     }
 
     togglePause() {
+        // Push staged shapes on unpause
         if (this.isPaused) {
             for (let i = 0; i < this.#stagedShapes.length; i++) {
                 let ball = new Ball(
@@ -426,7 +431,34 @@ class GravityBoardController {
 }
 
 window.onload = () => {
-    board = new GravityBoard('field', 2560, 1200);
+    // board = new GravityBoard('field', 2560, 1200);
+    let sample = `{
+    "id": "guid",
+    "author": "authorId",
+    "createDate": "",
+    "board": {
+        "type": "gravity",
+        "backgroundColor": "",
+        "shapes": [
+            {
+                "type": "ball",
+                "x": 100,
+                "y": 100,
+                "mass": 10,
+                "isAffectedByGravity": true,
+                "exertsGravity": false,
+                "isTrailEnabled": true,
+                "width": 10,
+                "borderWidth": 2,
+                "color": "white",
+                "borderColor": "red",
+                "xVelocity": 5,
+                "yVelocity": 0
+            }
+        ]
+    }
+}`
+    let board = deserializeGravityBoard(sample);
 
     let centerBall = new Ball(1280, 600, 100, false, true, false, 30, 2, 'white', 'blue');
     board.addShape(centerBall);
@@ -459,4 +491,55 @@ function getRndInteger(min, max) {
 
 function toSingleDecimal(num) {
     return Number(num.toFixed(1));
+}
+
+// Load board in paused state with all shapes staged
+function deserializeGravityBoard(json) {
+    let props = JSON.parse(json);
+    console.log(props);
+    let gravityBoard = new GravityBoard('field', 2560, 1200);
+    let factory = new ShapeFactory();
+    gravityBoard.togglePause();
+
+    if (props.board.shapes) {
+        let shapes = props.board.shapes;
+        for (let i = 0; i < shapes.length; i++) {
+            gravityBoard.stageBall(factory.createShape(shapes[i]));
+            gravityBoard.saveStagedBall();
+        }
+    }
+    return gravityBoard;
+}
+
+class ShapeFactory {
+    createShape(props) {
+        let shape;
+        switch (props.type) {
+            case shapeTypes.BALL:
+                shape = this.createBall(props);
+        }
+
+        if (props.xVelocity)
+            shape.accelerateXAxis(props.xVelocity);
+        if (props.yVelocity)
+            shape.accelerateYAxise(props.yVelocity);
+
+        return shape;
+    }
+
+
+    createBall(props) {
+        return new Ball(
+            props.x,
+            props.y,
+            props.mass,
+            props.isAffectedByGravity,
+            props.exertsGravity,
+            props.isTrailEnabled,
+            props.width,
+            props.borderWidth,
+            props.color,
+            props.borderColor
+        );
+    }
 }
