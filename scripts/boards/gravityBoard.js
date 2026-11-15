@@ -406,19 +406,19 @@ class GravityBoardController {
         switch (key) {
             case 'w':
                 yAcceleration = adjustmentAmount
-                this.yVelocityInput.value = Number(this.yVelocityInput.value) + adjustmentAmount;
+                this.yVelocityInput.value = toSingleDecimal(Number(this.yVelocityInput.value) + adjustmentAmount);
                 break;
             case 's':
                 yAcceleration = -1 * adjustmentAmount;
-                this.yVelocityInput.value -= adjustmentAmount;
+                this.yVelocityInput.value = toSingleDecimal(Number(this.yVelocityInput.value) - adjustmentAmount);
                 break;
             case 'a':
                 xAcceleration = -1 * adjustmentAmount;
-                this.xVelocityInput.value -= adjustmentAmount;
+                this.xVelocityInput.value = toSingleDecimal(Number(this.xVelocityInput.value) - adjustmentAmount);
                 break;
             case 'd':
                 xAcceleration = adjustmentAmount;
-                this.xVelocityInput.value += adjustmentAmount;
+                this.xVelocityInput.value = toSingleDecimal(Number(this.xVelocityInput.value) + adjustmentAmount);
                 break;
         }
         this.#board.accelerateStagedBall(xAcceleration, yAcceleration);
@@ -450,7 +450,7 @@ window.onload = () => {
 
     board.start();
 
-    let controller = new GravityBoardController(board);
+    new GravityBoardController(board);
 
     document.getElementById('add-button').onclick = function () {
 
@@ -472,4 +472,8 @@ function generateRandomColor() {
 
 function getRndInteger(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function toSingleDecimal(num) {
+    return Number(num.toFixed(1));
 }
