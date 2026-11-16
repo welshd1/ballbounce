@@ -32,11 +32,11 @@ const shapeTypes = {
 }
 
 class GravityBoard {
-    #mouseMode;
-    #shapes;
-    #mouseBall;
-    #stagedBall;
-    #stagedShapes;
+    mouseMode;
+    shapes;
+    mouseBall;
+    stagedBall;
+    stagedShapes;
 
     constructor(canvasId, width, height) {
         this.canvas = document.getElementById(canvasId);
@@ -45,11 +45,11 @@ class GravityBoard {
         this.context = this.canvas.getContext('2d');
         this.isPaused = false;
 
-        this.#shapes = [];
-        this.#stagedShapes = [];
-        this.#mouseBall = new Ball(0, 0, mouseDefaults.mouseMass, false, false, true, 10, 2, 'red', 'white');
-        this.#mouseMode = mouseDefaults.mouseMode;
-        this.#stagedBall = null;
+        this.shapes = [];
+        this.stagedShapes = [];
+        this.mouseBall = new Ball(0, 0, mouseDefaults.mouseMass, false, false, true, 10, 2, 'red', 'white');
+        this.mouseMode = mouseDefaults.mouseMode;
+        this.stagedBall = null;
     }
 
     start() {
@@ -62,126 +62,126 @@ class GravityBoard {
 
         if (!this.isPaused) {
             // Calculate the change that get made before actually saving it
-            for (let i = 0; i < this.#shapes.length; i++) {
-                this.#shapes[i].stageGravityChange(this.#mouseBall);
-                this.stageShapeGravities(i, this.#shapes[i]);
+            for (let i = 0; i < this.shapes.length; i++) {
+                this.shapes[i].stageGravityChange(this.mouseBall);
+                this.stageShapeGravities(i, this.shapes[i]);
             }
 
             // Enact the total gravity change calculated in the previous loop
-            for (let i = 0; i < this.#shapes.length; i++) {
-                this.#shapes[i].enactGravityChange();
-                this.#shapes[i].move();
-                this.#shapes[i].render(this.context);
+            for (let i = 0; i < this.shapes.length; i++) {
+                this.shapes[i].enactGravityChange();
+                this.shapes[i].move();
+                this.shapes[i].render(this.context);
             }
         }
 
         else {
-            for (let i = 0; i < this.#shapes.length; i++) {
-                this.#shapes[i].render(this.context);
+            for (let i = 0; i < this.shapes.length; i++) {
+                this.shapes[i].render(this.context);
             }
         }
 
-        if (this.#mouseBall.exertsGravity) {
-            this.#mouseBall.render(this.context);
-            this.#mouseBall.saveLocation();
+        if (this.mouseBall.exertsGravity) {
+            this.mouseBall.render(this.context);
+            this.mouseBall.saveLocation();
         }
 
-        if (this.#stagedBall != null) {
-            this.renderGridLines(this.#stagedBall.x, this.#stagedBall.y);
-            this.#stagedBall.renderStagingDetails(this.context);
-            this.#stagedBall.render(this.context);
-            this.#stagedBall.saveLocation();
+        if (this.stagedBall != null) {
+            this.renderGridLines(this.stagedBall.x, this.stagedBall.y);
+            this.stagedBall.renderStagingDetails(this.context);
+            this.stagedBall.render(this.context);
+            this.stagedBall.saveLocation();
         }
 
-        for (let i = 0; i < this.#stagedShapes.length; i++) {
-            this.#stagedShapes[i].renderStagingDetails(this.context);
-            this.#stagedShapes[i].render(this.context);
-            this.#stagedShapes[i].saveLocation();
+        for (let i = 0; i < this.stagedShapes.length; i++) {
+            this.stagedShapes[i].renderStagingDetails(this.context);
+            this.stagedShapes[i].render(this.context);
+            this.stagedShapes[i].saveLocation();
         }
 
     }
 
     stageShapeGravities(index, currentShape) {
-        for (let i = index + 1; i < this.#shapes.length; i++) {
-            this.#shapes[i].stageGravityChange(currentShape);
-            currentShape.stageGravityChange(this.#shapes[i]);
+        for (let i = index + 1; i < this.shapes.length; i++) {
+            this.shapes[i].stageGravityChange(currentShape);
+            currentShape.stageGravityChange(this.shapes[i]);
         }
     }
 
     addShape(shape) {
-        this.#shapes.push(shape);
+        this.shapes.push(shape);
     }
 
     setMouseGravity(value) {
-        this.#mouseBall.mass = value;
+        this.mouseBall.mass = value;
     }
 
     getMouseGravity() {
-        return this.#mouseBall.mass;
+        return this.mouseBall.mass;
     }
 
     setMouseMode(mode) {
-        this.#mouseMode = mode;
+        this.mouseMode = mode;
     }
 
     toggleMouseGravity(isEnabled) {
-        this.#mouseBall.exertsGravity = isEnabled;
+        this.mouseBall.exertsGravity = isEnabled;
     }
 
     stageBall(ball) {
-        this.#stagedBall = ball;
+        this.stagedBall = ball;
     }
 
     adjustStagedBallMass(amount) {
-        this.#stagedBall.mass += amount;
+        this.stagedBall.mass += amount;
     }
 
     cancelStagedBall() {
         console.log('cancel');
-        this.#stagedBall = null;
+        this.stagedBall = null;
     }
 
     saveStagedBall() {
         if (this.isPaused) {
-            this.#stagedShapes.push(this.#stagedBall);
+            this.stagedShapes.push(this.stagedBall);
         }
         else {
             let ball = new Ball(
-                this.#stagedBall.x,
-                this.#stagedBall.y,
-                this.#stagedBall.mass,
-                this.#stagedBall.isAffectedByGravity,
-                this.#stagedBall.exertsGravity,
-                this.#stagedBall.isTrailEnabled,
-                this.#stagedBall.width,
-                this.#stagedBall.borderWidth,
-                this.#stagedBall.color,
-                this.#stagedBall.borderColor,
+                this.stagedBall.x,
+                this.stagedBall.y,
+                this.stagedBall.mass,
+                this.stagedBall.isAffectedByGravity,
+                this.stagedBall.exertsGravity,
+                this.stagedBall.isTrailEnabled,
+                this.stagedBall.width,
+                this.stagedBall.borderWidth,
+                this.stagedBall.color,
+                this.stagedBall.borderColor,
             )
-            ball.accelerateXAxis(this.#stagedBall.xVelocity);
-            ball.accelerateYAxis(this.#stagedBall.yVelocity);
-            this.#shapes.push(ball);
+            ball.accelerateXAxis(this.stagedBall.xVelocity);
+            ball.accelerateYAxis(this.stagedBall.yVelocity);
+            this.shapes.push(ball);
         }
-        this.#stagedBall = null;
+        this.stagedBall = null;
     }
 
     accelerateStagedBall(xVelocityChange, yVelocityChange) {
-        if (this.#stagedBall) {
-            this.#stagedBall.accelerateXAxis(xVelocityChange);
-            this.#stagedBall.accelerateYAxis(yVelocityChange);
+        if (this.stagedBall) {
+            this.stagedBall.accelerateXAxis(xVelocityChange);
+            this.stagedBall.accelerateYAxis(yVelocityChange);
         }
     }
 
     updateControlCoordinates(x, y) {
-        if (this.#stagedBall) {
-            this.#stagedBall.x = x;
-            this.#stagedBall.y = y;
-            this.#stagedBall.saveLocation();
+        if (this.stagedBall) {
+            this.stagedBall.x = x;
+            this.stagedBall.y = y;
+            this.stagedBall.saveLocation();
         }
 
-        this.#mouseBall.x = x;
-        this.#mouseBall.y = y;
-        this.#mouseBall.saveLocation();
+        this.mouseBall.x = x;
+        this.mouseBall.y = y;
+        this.mouseBall.saveLocation();
     }
 
     renderGridLines(x, y) {
@@ -204,24 +204,24 @@ class GravityBoard {
     togglePause() {
         // Push staged shapes on unpause
         if (this.isPaused) {
-            for (let i = 0; i < this.#stagedShapes.length; i++) {
+            for (let i = 0; i < this.stagedShapes.length; i++) {
                 let ball = new Ball(
-                    this.#stagedShapes[i].x,
-                    this.#stagedShapes[i].y,
-                    this.#stagedShapes[i].mass,
-                    this.#stagedShapes[i].isAffectedByGravity,
-                    this.#stagedShapes[i].exertsGravity,
-                    this.#stagedShapes[i].isTrailEnabled,
-                    this.#stagedShapes[i].width,
-                    this.#stagedShapes[i].borderWidth,
-                    this.#stagedShapes[i].color,
-                    this.#stagedShapes[i].borderColor,
+                    this.stagedShapes[i].x,
+                    this.stagedShapes[i].y,
+                    this.stagedShapes[i].mass,
+                    this.stagedShapes[i].isAffectedByGravity,
+                    this.stagedShapes[i].exertsGravity,
+                    this.stagedShapes[i].isTrailEnabled,
+                    this.stagedShapes[i].width,
+                    this.stagedShapes[i].borderWidth,
+                    this.stagedShapes[i].color,
+                    this.stagedShapes[i].borderColor,
                 );
-                ball.accelerateXAxis(this.#stagedShapes[i].xVelocity);
-                ball.accelerateYAxis(this.#stagedShapes[i].yVelocity);
-                this.#shapes.push(ball);
+                ball.accelerateXAxis(this.stagedShapes[i].xVelocity);
+                ball.accelerateYAxis(this.stagedShapes[i].yVelocity);
+                this.shapes.push(ball);
             }
-            this.#stagedShapes = [];
+            this.stagedShapes = [];
         }
         this.isPaused = !this.isPaused;
     }
@@ -509,37 +509,4 @@ function deserializeGravityBoard(json) {
         }
     }
     return gravityBoard;
-}
-
-class ShapeFactory {
-    createShape(props) {
-        let shape;
-        switch (props.type) {
-            case shapeTypes.BALL:
-                shape = this.createBall(props);
-        }
-
-        if (props.xVelocity)
-            shape.accelerateXAxis(props.xVelocity);
-        if (props.yVelocity)
-            shape.accelerateYAxise(props.yVelocity);
-
-        return shape;
-    }
-
-
-    createBall(props) {
-        return new Ball(
-            props.x,
-            props.y,
-            props.mass,
-            props.isAffectedByGravity,
-            props.exertsGravity,
-            props.isTrailEnabled,
-            props.width,
-            props.borderWidth,
-            props.color,
-            props.borderColor
-        );
-    }
 }

@@ -39,10 +39,10 @@ class Location {
 }
 
 /*
-    General class shape. This class contains all the functional components of a shape such as
-    location data, gravity methods, mass, location
-    It is meant to be an abstract class, but alas that is not supported in vanilla JS
-    To implement a new shape, the render, getTotalyHeight, and getTotalWidth methods must be implemented
+ * General class shape. This class contains all the functional components of a shape such as
+ * location data, gravity methods, mass, location
+ * It is meant to be an abstract class, but alas that is not supported in vanilla JS
+ * To implement a new shape, the render, getTotalyHeight, and getTotalWidth methods must be implemented
 */
 class Shape {
     constructor(x, y, mass, isAffectedByGravity, exertsGravity, isTrailEnabled) {
@@ -339,4 +339,38 @@ function findY(m, x, b) {
 
 function findX(m, y, b) {
     return (y - b) / m;
+}
+
+
+
+class ShapeFactory {
+    createShape(props) {
+        let shape;
+        switch (props.type) {
+            case shapeTypes.BALL:
+                shape = this.createBall(props);
+        }
+
+        if (props.xVelocity)
+            shape.accelerateXAxis(props.xVelocity);
+        if (props.yVelocity)
+            shape.accelerateYAxise(props.yVelocity);
+
+        return shape;
+    }
+
+    createBall(props) {
+        return new Ball(
+            props.x,
+            props.y,
+            props.mass,
+            props.isAffectedByGravity,
+            props.exertsGravity,
+            props.isTrailEnabled,
+            props.width,
+            props.borderWidth,
+            props.color,
+            props.borderColor
+        );
+    }
 }
