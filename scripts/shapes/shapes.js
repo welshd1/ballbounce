@@ -39,10 +39,10 @@ class Location {
 }
 
 /*
-    General class shape. This class contains all the functional components of a shape such as
-    location data, gravity methods, mass, location
-    It is meant to be an abstract class, but alas that is not supported in vanilla JS
-    To implement a new shape, the render, getTotalyHeight, and getTotalWidth methods must be implemented
+ * General class shape. This class contains all the functional components of a shape such as
+ * location data, gravity methods, mass, location
+ * It is meant to be an abstract class, but alas that is not supported in vanilla JS
+ * To implement a new shape, the render, getTotalyHeight, and getTotalWidth methods must be implemented
 */
 class Shape {
     constructor(x, y, mass, isAffectedByGravity, exertsGravity, isTrailEnabled) {
@@ -61,15 +61,19 @@ class Shape {
     }
 
     render(context) {
-        throw new Error("Render not implemented on " + this.constructor.name)
+        throw new Error("Render not implemented on " + this.constructor.name);
     }
 
     getTotalHeight() {
-        throw new Error("getTotalHeight not implemented on " + this.constructor.name)
+        throw new Error("getTotalHeight not implemented on " + this.constructor.name);
     }
 
     getTotalWidth() {
-        throw new Error("getTotalWidth not implemented on " + this.constructor.name)
+        throw new Error("getTotalWidth not implemented on " + this.constructor.name);
+    }
+
+    toObj() {
+        throw new Error("toObj not implemented on " + this.constructor.name);
     }
 
     // Pass in + or - numbers to increment value
@@ -302,6 +306,19 @@ class Ball extends Shape {
     getTotalHeight() {
         return this.width + this.borderWidth * 2;
     }
+
+    toObj() {
+        return {
+            x: this.x,
+            y: this.y,
+            xVelocity: this.xVelocity,
+            yVelocity: this.yVelocity,
+            mass: this.mass,
+            isAffectedByGravity: this.isAffectedByGravity,
+            exertsGravity: this.exertsGravity,
+            isTrailEnabled: this.isTrailEnabled,
+        }
+    }
 }
 
 // Source - https://stackoverflow.com/a/35970186
@@ -339,4 +356,38 @@ function findY(m, x, b) {
 
 function findX(m, y, b) {
     return (y - b) / m;
+}
+
+
+
+class ShapeFactory {
+    createShape(props) {
+        let shape;
+        switch (props.type) {
+            case shapeTypes.BALL:
+                shape = this.createBall(props);
+        }
+
+        if (props.xVelocity)
+            shape.accelerateXAxis(props.xVelocity);
+        if (props.yVelocity)
+            shape.accelerateYAxise(props.yVelocity);
+
+        return shape;
+    }
+
+    createBall(props) {
+        return new Ball(
+            props.x,
+            props.y,
+            props.mass,
+            props.isAffectedByGravity,
+            props.exertsGravity,
+            props.isTrailEnabled,
+            props.width,
+            props.borderWidth,
+            props.color,
+            props.borderColor
+        );
+    }
 }
