@@ -459,7 +459,7 @@ window.onload = () => {
     }
 }`
     let board = deserializeGravityBoard(sample);
-
+    
     let centerBall = new Ball(1280, 600, 100, false, true, false, 30, 2, 'white', 'blue');
     board.addShape(centerBall);
 
@@ -509,4 +509,16 @@ function deserializeGravityBoard(json) {
         }
     }
     return gravityBoard;
+}
+
+function serializeGravityBoard(board) {
+    // TODO: add author, background color
+    let jsonBoard = {};
+    let shapes = [];
+    for (let i = 0; i < board.shapes.length; i++) {
+        shapes.push(board.shapes[i].toObj());
+    }
+    jsonBoard.shapes = shapes;
+    console.log(JSON.stringify(jsonBoard))
+    return JSON.stringify(jsonBoard);
 }

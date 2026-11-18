@@ -61,15 +61,19 @@ class Shape {
     }
 
     render(context) {
-        throw new Error("Render not implemented on " + this.constructor.name)
+        throw new Error("Render not implemented on " + this.constructor.name);
     }
 
     getTotalHeight() {
-        throw new Error("getTotalHeight not implemented on " + this.constructor.name)
+        throw new Error("getTotalHeight not implemented on " + this.constructor.name);
     }
 
     getTotalWidth() {
-        throw new Error("getTotalWidth not implemented on " + this.constructor.name)
+        throw new Error("getTotalWidth not implemented on " + this.constructor.name);
+    }
+
+    toObj() {
+        throw new Error("toObj not implemented on " + this.constructor.name);
     }
 
     // Pass in + or - numbers to increment value
@@ -301,6 +305,19 @@ class Ball extends Shape {
 
     getTotalHeight() {
         return this.width + this.borderWidth * 2;
+    }
+
+    toObj() {
+        return {
+            x: this.x,
+            y: this.y,
+            xVelocity: this.xVelocity,
+            yVelocity: this.yVelocity,
+            mass: this.mass,
+            isAffectedByGravity: this.isAffectedByGravity,
+            exertsGravity: this.exertsGravity,
+            isTrailEnabled: this.isTrailEnabled,
+        }
     }
 }
 
