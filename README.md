@@ -19,3 +19,15 @@ The ball orbits project is written without any external libraries and is entirel
 
 ### Future State
 The goal of this project is to be able to save the state of a gravity board in a db as a serialized document, enabling users to share their designs with one another via links.
+
+
+## Credits
+### Thank you for carry PB/Arch
+When writing up the starting code for the gravity math, discord users probablybutter (PB) and cynicalfrost (Arch) were very helpful in writing up the original functions.
+
+Arch pointed out the importance of the atomicity of each element on the board exerting gravity on the other elements.
+
+PB remembered all the physics equations that I forgot or never learned in high school and gave them to me.
+
+### Backend Structure
+Backend structure modeled on [this article](https://www.geeksforgeeks.org/node-js/how-to-structure-my-application-in-express-js/) on [geeksforgeeks.org](https://www.geeksforgeeks.org).
