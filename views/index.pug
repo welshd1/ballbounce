@@ -1,0 +1,67 @@
+script(src="/scripts/shapes.js")
+script(src="/scripts/gravityBoard.js")
+html
+  head
+    link(
+      href="/styles/style.css" 
+      rel="stylesheet"
+      )
+  //
+    IDEAS SECTION
+     Color Scheme - have default but be able to set background color, font color
+  body
+    #wrapper
+      canvas#field(data-tag="Canvas")
+      .controls
+        #ball-mode-wrapper
+          .control-input-wrapper
+            span.input-label Add Ball Mode
+            input#add-ball-mode.mode-radio-button(
+              name="ball_mode" 
+              value="addBall" 
+              type="radio"
+              )
+          .control-input-wrapper
+            span.input-label Gravity Mode
+            input#gravity-mode.mode-radio-button(
+              name="ball_mode" 
+              value="gravityBall" 
+              type="radio"
+              )
+        #mouse-gravity-settings
+          .control-input-wrapper
+            span.input-label Mouse Gravity
+            input#mouse-gravity(type="number")
+        #add-ball-settings
+          .control-input-wrapper
+            span.input-label Randomize
+            input#randomize(type="checkbox")
+          .control-input-wrapper
+            span.input-label Ball Mass
+            input#ball-mass(type="number")
+          .control-input-wrapper
+            span.input-label X Velocity
+            input#x-velocity(type="number")
+          .control-input-wrapper
+            span.input-label Y Velocity
+            input#y-velocity(type="number")
+          .control-input-wrapper
+            span.input-label Exerts Gravity
+            input#exerts-gravity(type="checkbox")
+          .control-input-wrapper
+            span.input-label Affected by Gravity
+            input#affected-by-gravity(type="checkbox")
+          .control-input-wrapper
+            span.input-label Ball Color
+            input#ball-color(type="text")
+          .control-input-wrapper
+            span.input-label Ball Width
+            input#ball-width(type="number")
+          .control-input-wrapper
+            span.input-label Ball Border Width
+            input#ball-border-width(type="number")
+          .control-input-wrapper
+            span.input-label Ball Border Color
+            input#ball-border-color(type="text")
+          button#add-button.control-button Add Ball
+          button#pause-button.control-button Pause
